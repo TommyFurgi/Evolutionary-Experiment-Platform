@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 @Command(name = "", description = "Interaktywna aplikacja CLI", subcommands = {CommandLine.HelpCommand.class, ExitCommand.class})
 public class InteractiveApp implements Runnable {
-
     public static void main(String[] args) {
         new InteractiveApp().run();
     }
@@ -20,6 +19,7 @@ public class InteractiveApp implements Runnable {
         // Dodaj swoje komendy jako subkomendy
         cmd.addSubcommand("echo", new EchoCommand());
         cmd.addSubcommand("add", new AddCommand());
+        cmd.addSubcommand("run", new RunExperimentCommand());
 
         System.out.println("Witaj w interaktywnej aplikacji CLI. Wpisz 'help' aby zobaczyć dostępne komendy.");
 

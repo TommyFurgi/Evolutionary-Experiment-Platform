@@ -2,7 +2,9 @@
 - utworzenie projektu  
 
 30.11
-- Opracowanie koncepcji rozwijania projektu, dodanie bazy PostgreSQL używając dockerowej konteneryzacji,
-a także napisz bazowych struktur projektu
+- Opracowanie koncepcji rozwijania projektu,  
+- dodanie bazy PostgreSQL używając dockerowej konteneryzacji,  
+- napisanie bazowych struktur projektu  
 
-
+01.12
+- wysyłanie eksperymentu z cli do serwera
