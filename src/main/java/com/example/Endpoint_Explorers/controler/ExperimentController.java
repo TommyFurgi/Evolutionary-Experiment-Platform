@@ -20,7 +20,9 @@ public class ExperimentController {
 
     @PostMapping("/run")
     public ResponseEntity<String> runExperiment(@RequestBody @Valid RunExperimentRequest request) {
-        log.info("Starting experiment: {}", request);
+        System.out.println("Received experiment request: " + request);
+        log.info("Received experiment request: {}", request);
+
         service.runExperiment(request);
         return ResponseEntity.ok("Experiment started successfully.");
     }
