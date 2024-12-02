@@ -17,9 +17,9 @@ public class RunExperimentRequest {
     @Size(min = 1, message = "At least one metric is required")
     private List<String> metrics;
 
-    private List<Integer> evaluationNumbers;
+    private Integer evaluationNumbers;
 
-    public RunExperimentRequest(String problemName, String algorithm, List<String> metrics, List<Integer> evaluationNumbers) {
+    public RunExperimentRequest(String problemName, String algorithm, List<String> metrics, Integer evaluationNumbers) {
         this.problemName = problemName;
         this.algorithm = algorithm;
         this.metrics = metrics;
