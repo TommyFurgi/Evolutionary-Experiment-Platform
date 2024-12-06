@@ -9,26 +9,26 @@ import picocli.CommandLine.Parameters;
 
 import java.util.List;
 
-@Command(name = "run", description = "Run experiment")
+@Command(name = "run", description = "Run an experiment on the server")
 public class RunExperimentCommand implements Runnable {
 //    @Value("${BASE_URL}")
 //    private String serverURL;
 
-    @Parameters(index = "0", description = "Name of the experiment")
+    @Parameters(index = "0", description = "Name of the problem to solve")
     private String problemName;
 
-    @Parameters(index = "1", description = "Algorithm to use")
+    @Parameters(index = "1", description = "Algorithm to use for solving the problem")
     private String algorithm;
 
-    @CommandLine.Option(names = "-m", arity = "1..*", description = "List of metrics")
+    @CommandLine.Option(names = {"-m", "--metrics"}, arity = "1..*", description = "List of metrics to evaluate")
     private List<String> metrics;
 
-    @CommandLine.Option(names = "-e", arity = "0..*", description = "List of evaluation numbers (optional)")
-    private List<Integer> evaluationNumbers;
+    @CommandLine.Option(names = {"-e", "--evaluations"}, description = "Number of evaluations (default: 10000)")
+    private Integer evaluationNumbers;
 
     @Override
     public void run() {
-        System.out.printf("Running experiment: %s, Algorithm: %s, Metrics: %s, Evaluations: %s%n",
+        System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
                 problemName, algorithm, metrics, evaluationNumbers);
 
         String url = "http://localhost:8080/experiment/run";

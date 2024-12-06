@@ -6,10 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -23,7 +20,7 @@ public class ExperimentController {
         System.out.println("Received experiment request: " + request);
         log.info("Received experiment request: {}", request);
 
-        service.runExperiment(request);
-        return ResponseEntity.ok("Experiment started successfully.");
+        service.runExperiment(request); // Integer experimentId = service.runExperiment(request) -> i think we should pass in response ID of started experiment
+        return ResponseEntity.ok("Experiment started successfully."); // So it should be "Experiment started successfully ID:  " + ID
     }
 }
