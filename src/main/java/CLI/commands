@@ -1,0 +1,5 @@
+To run UF1 problem with an eMOEA algorithm with GenerationalDistance and 10000 evaluations use:
+    run UF1 eMOEA -m generational-distance -e 10000
+
+To run UF1 problem with an eMOEA algorithm with default metric and evaluations use:
+    run UF1 eMOEA

@@ -19,10 +19,10 @@ public class RunExperimentCommand implements Runnable {
     @Parameters(index = "1", description = "Algorithm to use for solving the problem")
     private String algorithm;
 
-    @CommandLine.Option(names = {"-m", "--metrics"}, arity = "1..*", description = "List of metrics to evaluate")
+    @CommandLine.Option(names = {"-m", "--metrics"}, arity = "1..*", description = "List of metrics to evaluate", defaultValue = "all")
     private List<String> metrics;
 
-    @CommandLine.Option(names = {"-e", "--evaluations"}, description = "Number of evaluations (default: 10000)")
+    @CommandLine.Option(names = {"-e", "--evaluations"}, description = "Number of evaluations (default: 10000)", defaultValue = "10000")
     private Integer evaluationNumber;
 
     @Override
