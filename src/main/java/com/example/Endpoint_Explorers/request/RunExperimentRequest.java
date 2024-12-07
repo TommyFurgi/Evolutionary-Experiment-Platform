@@ -17,22 +17,12 @@ public class RunExperimentRequest {
     @Size(min = 1, message = "At least one metric is required")
     private List<String> metrics;
 
-    private Integer evaluationNumbers;
+    private Integer evaluationNumber;
 
-    public RunExperimentRequest(String problemName, String algorithm, List<String> metrics, Integer evaluationNumbers) {
+    public RunExperimentRequest(String problemName, String algorithm, List<String> metrics, Integer evaluationNumber) {
         this.problemName = problemName;
         this.algorithm = algorithm;
         this.metrics = metrics;
-        this.evaluationNumbers = evaluationNumbers;
-    }
-
-    @Override
-    public String toString() {
-        return "RunExperimentRequest{" +
-                "problemName='" + problemName + '\'' +
-                ", algorithm='" + algorithm + '\'' +
-                ", metrics=" + metrics +
-                ", evaluationNumbers=" + evaluationNumbers +
-                '}';
+        this.evaluationNumber = evaluationNumber;
     }
 }

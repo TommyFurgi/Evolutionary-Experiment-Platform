@@ -13,6 +13,7 @@ public class InstrumenterFactory {
         return new Instrumenter()
                 .withProblem(request.getProblemName())
                 .withFrequency(100) //now it is fixed to 100, but we should consider passing additional  parameter
+                .attachElapsedTimeCollector()
                 .attachAll(); //now we attach all metrics, it should be fixed in the future
     }
 }

@@ -2,7 +2,7 @@ package CLI;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "help", description = "Wyświetla pomoc dla dostępnych komend")
+@CommandLine.Command(name = "help", description = "Prints help information")
 class HelpCommand implements Runnable {
 
     @CommandLine.Spec

@@ -1,16 +1,12 @@
 package com.example.Endpoint_Explorers.service;
 
-import com.example.Endpoint_Explorers.component.ExecutorFactory;
 import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
-import com.example.Endpoint_Explorers.component.InstrumenterFactory;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.moeaframework.Executor;
-import org.moeaframework.Instrumenter;
 import org.moeaframework.analysis.collector.Observations;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class ExperimentService {
     private final ExperimentRepository repository;
     private final ExperimentObservableFactory observableFactory;
+
     public void runExperiment(RunExperimentRequest request) {
         log.info("Running " + request.toString());
 

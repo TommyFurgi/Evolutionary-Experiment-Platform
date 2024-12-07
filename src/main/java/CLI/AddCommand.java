@@ -2,18 +2,17 @@ package CLI;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "add", description = "Dodaje dwie liczby")
+@CommandLine.Command(name = "add", description = "Adds two numbers together")
 class AddCommand implements Runnable {
 
-    @CommandLine.Parameters(index = "0", paramLabel = "liczba1", description = "Pierwsza liczba")
-    private int liczba1;
+    @CommandLine.Parameters(index = "0", paramLabel = "number1", description = "First number")
+    private int number1;
 
-    @CommandLine.Parameters(index = "1", paramLabel = "liczba2", description = "Druga liczba")
-    private int liczba2;
+    @CommandLine.Parameters(index = "1", paramLabel = "number2", description = "Second number")
+    private int number2;
 
     @Override
     public void run() {
-        int wynik = liczba1 + liczba2;
-        System.out.println("Wynik: " + wynik);
+        System.out.println("Score: " + number1 + number2);
     }
 }
