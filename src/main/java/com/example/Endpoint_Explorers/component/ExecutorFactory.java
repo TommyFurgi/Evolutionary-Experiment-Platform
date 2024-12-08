@@ -14,7 +14,7 @@ public class ExecutorFactory {
         return new Executor()
                 .withProblem(request.getProblemName())
                 .withAlgorithm(request.getAlgorithm())
-                .withMaxEvaluations(request.getEvaluationNumbers())
+                .withMaxEvaluations(request.getEvaluationNumber())
                 .withInstrumenter(instrumenter);
     }
 }
