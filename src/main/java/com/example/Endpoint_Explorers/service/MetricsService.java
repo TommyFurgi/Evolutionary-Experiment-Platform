@@ -7,6 +7,8 @@ import com.example.Endpoint_Explorers.repository.MetricsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class MetricsService {
@@ -21,5 +23,9 @@ public class MetricsService {
                 .build();
 
         repository.save(metrics);
+    }
+
+    public List<Metrics> getMetricsForExperiment(int experimentId) {
+        return repository.findByExperimentId(experimentId);
     }
 }
