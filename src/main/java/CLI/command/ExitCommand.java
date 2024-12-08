@@ -1,9 +1,9 @@
-package CLI;
+package CLI.command;
 
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "exit", description = "Exit the application")
-class ExitCommand implements Runnable {
+public class ExitCommand implements Runnable {
 
     @Override
     public void run() {

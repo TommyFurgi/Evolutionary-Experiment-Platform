@@ -1,9 +1,9 @@
-package CLI;
+package CLI.command;
 
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "add", description = "Adds two numbers together")
-class AddCommand implements Runnable {
+public class AddCommand implements Runnable {
 
     @CommandLine.Parameters(index = "0", paramLabel = "number1", description = "First number")
     private int number1;
