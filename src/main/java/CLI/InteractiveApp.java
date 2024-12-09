@@ -1,5 +1,6 @@
 package CLI;
 
+import CLI.command.*;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -19,6 +20,7 @@ public class InteractiveApp implements Runnable {
         cmd.addSubcommand("echo", new EchoCommand());
         cmd.addSubcommand("add", new AddCommand());
         cmd.addSubcommand("run", new RunExperimentCommand());
+        cmd.addSubcommand("get", new GetExperimentCommand());
 
         System.out.println("Welcome to the interactive CLI application. Type 'help' to see available commands.");
 

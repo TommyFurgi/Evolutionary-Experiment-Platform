@@ -22,7 +22,7 @@ public class ExperimentController {
     private final ExperimentService service;
     private final ExperimentRepository experimentRepository;
 
-    @PostMapping("/run")
+    @PostMapping()
     public ResponseEntity<String> runExperiment(@RequestBody @Valid RunExperimentRequest request) {
         System.out.println("Received experiment request: " + request);
         log.info("Received experiment request: {}", request);
@@ -31,8 +31,8 @@ public class ExperimentController {
         return ResponseEntity.ok("Experiment started successfully, experimentID :  " + + experimentId);
     }
 
-    @GetMapping("/{id}/metrics")
-    public ResponseEntity<Experiment> getExperiment(@PathVariable int id){
+    @GetMapping("/{id}")
+    public ResponseEntity<Experiment> getExperimentById(@PathVariable int id){
         log.info("Getting experiment: {}", id);
         Optional<Experiment> optionalExperiment = service.getExperimentById(id);
         return optionalExperiment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());

@@ -1,4 +1,4 @@
-package CLI;
+package CLI.command;
 
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 
@@ -30,7 +30,7 @@ public class RunExperimentCommand implements Runnable {
         System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
                 problemName, algorithm, metrics, evaluationNumber);
 
-        String url = "http://localhost:8080/experiment/run";
+        String url = "http://localhost:8080/experiment";
 
         RunExperimentRequest request = new RunExperimentRequest(
                 problemName, algorithm, metrics, evaluationNumber);

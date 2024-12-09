@@ -16,3 +16,10 @@
 - dodatnie funkcji wykonywania ekspertymentu w zaleznosci od podanych przez uzytkownika parametrow
 - dodanie readme.md
 - dodanie funkcji zapisywania eksperymentu oraz odpowiednich metryk do bazy danych
+
+08.12
+- poprawa kodu związanego z wysyłaniem danych do bazy
+- dodanie pobierania danych z bazy danych
+- dodanie możliwości odbierania wyników eksperymentu po id z cli
+- mapowanie danych z serwera i tworzenie tabelki z metrykami
+- poprawa nazw endpointów
