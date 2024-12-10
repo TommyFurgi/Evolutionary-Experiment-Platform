@@ -1,6 +1,7 @@
 package CLI;
 
 import CLI.command.*;
+import CLI.experiment.ScheduledExperimentFetcher;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -21,6 +22,9 @@ public class InteractiveApp implements Runnable {
         cmd.addSubcommand("add", new AddCommand());
         cmd.addSubcommand("run", new RunExperimentCommand());
         cmd.addSubcommand("get", new GetExperimentCommand());
+
+        ScheduledExperimentFetcher puller = new ScheduledExperimentFetcher();
+        puller.startRequesting();
 
         System.out.println("Welcome to the interactive CLI application. Type 'help' to see available commands.");
 
