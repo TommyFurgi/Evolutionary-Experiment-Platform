@@ -8,6 +8,7 @@ import com.example.Endpoint_Explorers.service.ExperimentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.moeaframework.util.tree.Exp;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,5 +37,13 @@ public class ExperimentController {
         log.info("Getting experiment: {}", id);
         Optional<Experiment> optionalExperiment = service.getExperimentById(id);
         return optionalExperiment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/ready")
+    public ResponseEntity<List<Experiment>> getDoneExperiments() {
+        List<Experiment> experiments = service.getReadyExperiments();
+        log.info("Returning {} experiments marked as 'ready'.", experiments.size());
+
+        return ResponseEntity.ok(experiments);
     }
 }

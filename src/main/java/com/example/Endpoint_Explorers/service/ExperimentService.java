@@ -13,9 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 import mapper.MetricsNameMapper;
 import org.moeaframework.analysis.collector.Observation;
 import org.moeaframework.analysis.collector.Observations;
+import org.moeaframework.util.tree.Exp;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,7 +53,7 @@ public class ExperimentService {
         log.debug("Metrics names: {}", metricsNames);
 
         saveMetrics(result, metricsNames, experiment);
-        experiment.setStatus(StatusType.COMPLETED);
+        experiment.setStatus(StatusType.READY);
         repository.save(experiment);
         result.display();
     }
@@ -100,7 +102,36 @@ public class ExperimentService {
         return experiment;
     }
 
+    /**
+     * Fetch an experiment by ID.
+     * If its status is READY, update it to COMPLETED and save it back to the repository.
+     *
+     * @param id The ID of the experiment.
+     * @return An Optional containing the experiment, if found.
+     */
     public Optional<Experiment> getExperimentById(int id){
-        return repository.findById(id);
+        return repository.findById(id).map(experiment -> {
+            if (experiment.getStatus() == StatusType.READY) {
+                experiment.setStatus(StatusType.COMPLETED);
+                return repository.save(experiment);
+            }
+            return experiment;
+        });
+    }
+
+    /**
+     * Fetch experiments with status READY, update their status to COMPLETED, and save changes.
+     *
+     * @return A list of updated experiments.
+     */
+    public List<Experiment> getReadyExperiments() {
+        List<Experiment> experiments =  repository.findByStatus(StatusType.READY);
+
+        for (Experiment experiment : experiments) {
+            experiment.setStatus(StatusType.COMPLETED);
+            repository.save(experiment);
+        }
+
+        return experiments;
     }
 }
