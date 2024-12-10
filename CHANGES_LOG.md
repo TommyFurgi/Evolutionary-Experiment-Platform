@@ -23,3 +23,6 @@
 - dodanie możliwości odbierania wyników eksperymentu po id z cli
 - mapowanie danych z serwera i tworzenie tabelki z metrykami
 - poprawa nazw endpointów
+
+10.12
+- dodanie automatycznego pobierana experymentów z serwera gdy zostaną zakończone
