@@ -2,25 +2,19 @@ package com.example.Endpoint_Explorers.service;
 
 import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
 import com.example.Endpoint_Explorers.model.Experiment;
-import com.example.Endpoint_Explorers.model.Metrics;
-import com.example.Endpoint_Explorers.model.StatusType;
+import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mapper.MetricsNameMapper;
-import org.moeaframework.analysis.collector.Observation;
 import org.moeaframework.analysis.collector.Observations;
-import org.moeaframework.util.tree.Exp;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -47,43 +41,19 @@ public class ExperimentService {
     private void handleSuccess(Experiment experiment, Observations result, RunExperimentRequest request) {
         log.info("Experiment completed successfully for problem: {}", request.getProblemName());
 
-        Set<String> metricsNames = processMetricsNames(result, request);
+        Set<String> metricsNames = metricsService.processMetricsNames(result, request);
 
         log.debug("Result keys: {}", result.keys());
         log.debug("Metrics names: {}", metricsNames);
 
-        saveMetrics(result, metricsNames, experiment);
-        experiment.setStatus(StatusType.READY);
+        metricsService.saveAllMetrics(result, metricsNames, experiment);
+        experiment.setStatus(StatusEnum.READY);
         repository.save(experiment);
         result.display();
     }
 
-    private Set<String> processMetricsNames(Observations result, RunExperimentRequest request) {
-        Set<String> metricsNames;
-        if (request.getMetrics().size() == 1 && request.getMetrics().getFirst().equals("all")) {
-            metricsNames = result.keys();
-            metricsNames.remove("Approximation Set");
-            metricsNames.remove("Population");
-        } else {
-            metricsNames = request.getMetrics().stream()
-                    .map(MetricsNameMapper::mapString)
-                    .collect(Collectors.toSet());
-        }
-        return metricsNames;
-    }
-
-    private void saveMetrics(Observations result, Set<String> metricsNames, Experiment experiment) {
-        for (Observation observation : result) {
-            for (String metricsName : metricsNames) {
-                float value = ((Number) observation.get(metricsName)).floatValue();
-                metricsService.saveMetrics(metricsName, experiment, observation.getNFE(), value);
-                log.debug("{} for step {}: {}", metricsName, observation.getNFE(), value);
-            }
-        }
-    }
-
     private void handleError(Experiment experiment, Throwable throwable, RunExperimentRequest request) {
-        experiment.setStatus(StatusType.FAILED);
+        experiment.setStatus(StatusEnum.FAILED);
         Experiment savedExperiment = repository.save(experiment);
         log.error("Experiment with id {} failed: {}", savedExperiment.getId(), throwable.getMessage());
     }
@@ -93,7 +63,7 @@ public class ExperimentService {
                 .problemName(request.getProblemName())
                 .algorithm(request.getAlgorithm())
                 .numberOfEvaluation(request.getEvaluationNumber())
-                .status(StatusType.IN_PROGRESS)
+                .status(StatusEnum.IN_PROGRESS)
                 .metricsList(new ArrayList<>())
                 .build();
 
@@ -102,36 +72,28 @@ public class ExperimentService {
         return experiment;
     }
 
-    /**
-     * Fetch an experiment by ID.
-     * If its status is READY, update it to COMPLETED and save it back to the repository.
-     *
-     * @param id The ID of the experiment.
-     * @return An Optional containing the experiment, if found.
-     */
     public Optional<Experiment> getExperimentById(int id){
         return repository.findById(id).map(experiment -> {
-            if (experiment.getStatus() == StatusType.READY) {
-                experiment.setStatus(StatusType.COMPLETED);
+            if (experiment.getStatus() == StatusEnum.READY) {
+                experiment.setStatus(StatusEnum.COMPLETED);
                 return repository.save(experiment);
             }
             return experiment;
         });
     }
 
-    /**
-     * Fetch experiments with status READY, update their status to COMPLETED, and save changes.
-     *
-     * @return A list of updated experiments.
-     */
     public List<Experiment> getReadyExperiments() {
-        List<Experiment> experiments =  repository.findByStatus(StatusType.READY);
+        List<Experiment> experiments =  repository.findByStatus(StatusEnum.READY);
 
         for (Experiment experiment : experiments) {
-            experiment.setStatus(StatusType.COMPLETED);
+            experiment.setStatus(StatusEnum.COMPLETED);
             repository.save(experiment);
         }
 
         return experiments;
+    }
+
+    public List<Experiment> getAllExperiments(){
+        return repository.findAll();
     }
 }

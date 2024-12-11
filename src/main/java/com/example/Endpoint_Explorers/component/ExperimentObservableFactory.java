@@ -19,7 +19,6 @@ public class ExperimentObservableFactory {
 
     public Observable<Observations> createExperimentObservable(RunExperimentRequest request) {
         return Observable.fromCallable(() -> {
-
             Instrumenter instrumenter = instrumenterFactory.createInstrumenter(request);
             Executor executor = executorFactory.createExecutor(request, instrumenter);
             executor.run();

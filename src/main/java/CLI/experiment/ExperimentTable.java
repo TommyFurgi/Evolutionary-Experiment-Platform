@@ -10,8 +10,6 @@ public class ExperimentTable {
     public static void displayTable(Experiment experiment) {
         List<Experiment.Metric> metrics = experiment.getMetrics();
         Set<String> uniqueMetricNames = getUniqueMetricNames(metrics);
-
-        int numColumns = 1 + uniqueMetricNames.size();
         Column[] columns = createColumns(uniqueMetricNames);
 
         CommandLine.Help.ColorScheme colorScheme = new CommandLine.Help.ColorScheme.Builder()

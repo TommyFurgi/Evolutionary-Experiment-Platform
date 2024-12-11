@@ -1,14 +1,12 @@
 package com.example.Endpoint_Explorers.controler;
 
 import com.example.Endpoint_Explorers.model.Experiment;
-import com.example.Endpoint_Explorers.model.Metrics;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import com.example.Endpoint_Explorers.service.ExperimentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.moeaframework.util.tree.Exp;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,7 +41,12 @@ public class ExperimentController {
     public ResponseEntity<List<Experiment>> getDoneExperiments() {
         List<Experiment> experiments = service.getReadyExperiments();
         log.info("Returning {} experiments marked as 'ready'.", experiments.size());
+        return ResponseEntity.ok(experiments);
+    }
 
+    @GetMapping("/table")
+    public ResponseEntity<List<Experiment>> getAllExperimentsTable() {
+        List<Experiment> experiments = service.getAllExperiments();
         return ResponseEntity.ok(experiments);
     }
 }

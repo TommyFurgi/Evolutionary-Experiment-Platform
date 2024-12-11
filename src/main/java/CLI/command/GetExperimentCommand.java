@@ -1,5 +1,6 @@
 package CLI.command;
 
+import CLI.config.CliConfig;
 import CLI.experiment.Experiment;
 import CLI.experiment.ExperimentMapper;
 import CLI.experiment.ExperimentTable;
@@ -14,7 +15,7 @@ public class GetExperimentCommand implements Runnable {
 
     @Override
     public void run() {
-        String url = "http://localhost:8080/experiment/" + experimentId;
+        String url = CliConfig.getInstance().getGetExperimentUrl() + experimentId;
         RestTemplate restTemplate = new RestTemplate();
 
         try {

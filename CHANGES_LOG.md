@@ -26,3 +26,9 @@
 
 10.12
 - dodanie automatycznego pobierana experymentów z serwera gdy zostaną zakończone
+
+11.12.2024
+- dodanie komendy get-all, która pobiera informacje o statusie wszystkich eksperymentów
+- refactor kodu
+- dodanie singletona CliConfig, gdzie zapisane są endpointy, z których korzystamy
+- zmiana ScheduledExperimentFetcher tak zeby nie printował nam wyników na konsole tylko samą informację,że eksperment jest COMPLETED
