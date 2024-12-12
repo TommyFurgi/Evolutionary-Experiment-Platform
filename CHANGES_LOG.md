@@ -32,3 +32,7 @@
 - refactor kodu
 - dodanie singletona CliConfig, gdzie zapisane są endpointy, z których korzystamy
 - zmiana ScheduledExperimentFetcher tak zeby nie printował nam wyników na konsole tylko samą informację,że eksperment jest COMPLETED
+
+12.12
+- poprawa listowania eksperymentów – dodano możliwość filtrowania eksperymentów po statusie
+- dodanie DTO dla eksperymentów by nie wysyłać niepotrzebnie metryk gdy użytkownik o to nie prosi

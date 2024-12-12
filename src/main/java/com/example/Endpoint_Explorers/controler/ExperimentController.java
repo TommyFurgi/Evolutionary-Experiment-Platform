@@ -1,6 +1,7 @@
 package com.example.Endpoint_Explorers.controler;
 
 import com.example.Endpoint_Explorers.model.Experiment;
+import com.example.Endpoint_Explorers.model.ExperimentDto;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import com.example.Endpoint_Explorers.service.ExperimentService;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,15 +40,37 @@ public class ExperimentController {
     }
 
     @GetMapping("/ready")
-    public ResponseEntity<List<Experiment>> getDoneExperiments() {
+    public ResponseEntity<List<ExperimentDto>> getDoneExperiments() {
         List<Experiment> experiments = service.getReadyExperiments();
-        log.info("Returning {} experiments marked as 'ready'.", experiments.size());
-        return ResponseEntity.ok(experiments);
+        List<ExperimentDto> experimentDtos = convertToDtoList(experiments);
+        log.info("Returning {} experiments marked as 'ready'.", experimentDtos.size());
+        return ResponseEntity.ok(experimentDtos);
     }
 
-    @GetMapping("/table")
-    public ResponseEntity<List<Experiment>> getAllExperimentsTable() {
-        List<Experiment> experiments = service.getAllExperiments();
-        return ResponseEntity.ok(experiments);
+    @GetMapping("/list/{status}")
+    public ResponseEntity<List<ExperimentDto>> getExperimentsList(@PathVariable String status) {
+        try {
+            List<Experiment> experiments = service.getAllExperimentsWithStatus(status);
+            List<ExperimentDto> experimentDtos = convertToDtoList(experiments);
+            return ResponseEntity.ok(experimentDtos);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+    }
+
+    private List<ExperimentDto> convertToDtoList(List<Experiment> experiments) {
+        return experiments.stream()
+                .map(this::createDto)
+                .toList();
+    }
+
+    private ExperimentDto createDto(Experiment experiment) {
+        return new ExperimentDto(
+                experiment.getId(),
+                experiment.getProblemName(),
+                experiment.getAlgorithm(),
+                experiment.getNumberOfEvaluation(),
+                experiment.getStatus()
+        );
     }
 }

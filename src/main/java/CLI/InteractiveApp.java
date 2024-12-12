@@ -20,7 +20,7 @@ public class InteractiveApp implements Runnable {
 
         cmd.addSubcommand("run", new RunExperimentCommand());
         cmd.addSubcommand("get", new GetExperimentCommand());
-        cmd.addSubcommand("get-all", new GetExperimentsTable());
+        cmd.addSubcommand("list", new GetExperimentsListCommand());
 
         ScheduledExperimentFetcher puller = new ScheduledExperimentFetcher();
         puller.startRequesting();

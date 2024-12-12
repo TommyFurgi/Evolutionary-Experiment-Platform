@@ -9,12 +9,14 @@ import picocli.CommandLine;
 
 import java.util.List;
 
-@CommandLine.Command(name = "get-all", description = "Get information about all experiments")
-public class GetExperimentsTable implements Runnable {
+@CommandLine.Command(name = "list", description = "Get information about experiments with status")
+public class GetExperimentsListCommand implements Runnable {
+    @CommandLine.Parameters(index = "0", description = "Status of experiments", defaultValue = "all")
+    private String experimentStatus;
 
     @Override
     public void run() {
-        String url = CliConfig.getInstance().getGetExperimentsTable();
+        String url = CliConfig.getInstance().getExperimentListUrl() + experimentStatus;
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -22,11 +24,25 @@ public class GetExperimentsTable implements Runnable {
             if (response.getStatusCode().is2xxSuccessful()) {
                 List<Experiment> experiments = ExperimentMapper.parseExperimentList(response);
                 displayTable(experiments);
+            } else if (response.getStatusCode().is4xxClientError()) {
+                handleClientError(response);
             } else {
                 System.err.println("Failed to fetch experiments. Status: " + response.getStatusCode());
             }
         } catch (Exception e) {
             System.err.println("Error while getting experiments: " + e.getMessage());
+        }
+    }
+
+    private void handleClientError(ResponseEntity<String> response) {
+        try {
+            List<String> availableStatuses = List.of(response.getBody().split(","));
+            System.err.println("Invalid status provided. Available statuses are:");
+            for (String status : availableStatuses) {
+                System.out.println("- " + status);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to parse available statuses from the response.");
         }
     }
 
