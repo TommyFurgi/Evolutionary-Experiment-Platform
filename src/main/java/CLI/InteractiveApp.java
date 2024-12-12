@@ -1,6 +1,9 @@
 package CLI;
 
-import CLI.command.*;
+import CLI.command.ExitCommand;
+import CLI.command.GetExperimentCommand;
+import CLI.command.GetExperimentsListCommand;
+import CLI.command.RunExperimentCommand;
 import CLI.experiment.ScheduledExperimentFetcher;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

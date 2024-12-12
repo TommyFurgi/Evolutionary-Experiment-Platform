@@ -22,8 +22,8 @@ public class Metrics {
     @Column(nullable = false)
     private String metricsName;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnore //DTO in the future
     @JoinColumn(nullable = false)
     private Experiment experiment;
 

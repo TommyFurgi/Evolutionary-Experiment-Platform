@@ -21,5 +21,6 @@ public class CliConfig {
     @Getter
     private final String experimentListUrl = "http://localhost:8080/experiment/list/";
 
-    private CliConfig() {}
+    private CliConfig() {
+    }
 }

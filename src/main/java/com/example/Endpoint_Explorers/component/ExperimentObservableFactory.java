@@ -17,7 +17,7 @@ public class ExperimentObservableFactory {
     private final InstrumenterFactory instrumenterFactory;
     private final ExecutorFactory executorFactory;
 
-    public Observable<Observations> createExperimentObservable(RunExperimentRequest request) {
+    public Observable<Observations> createExperimentObservable(RunExperimentRequest request) throws IllegalArgumentException {
         return Observable.fromCallable(() -> {
             Instrumenter instrumenter = instrumenterFactory.createInstrumenter(request);
             Executor executor = executorFactory.createExecutor(request, instrumenter);

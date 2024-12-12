@@ -8,7 +8,7 @@ import java.util.*;
 
 public class ExperimentTable {
     public static void displayTable(Experiment experiment) {
-        List<Experiment.Metric> metrics = experiment.getMetrics();
+        List<Metrics> metrics = experiment.getMetrics();
         Set<String> uniqueMetricNames = getUniqueMetricNames(metrics);
         Column[] columns = createColumns(uniqueMetricNames);
 
@@ -20,18 +20,18 @@ public class ExperimentTable {
         String[] headers = createTableHeaders(uniqueMetricNames);
         table.addRowValues(headers);
 
-        Map<Integer, List<Experiment.Metric>> iterationToMetricsMap = mapIterationsToMetrics(metrics);
+        Map<Integer, List<Metrics>> iterationToMetricsMap = mapIterationsToMetrics(metrics);
         List<Integer> sortedIterations = new ArrayList<>(iterationToMetricsMap.keySet());
         Collections.sort(sortedIterations);
 
         addRowsToTable(table, sortedIterations, iterationToMetricsMap, uniqueMetricNames);
 
-        System.out.println(table.toString());
+        System.out.println(table);
     }
 
-    private static Set<String> getUniqueMetricNames(List<Experiment.Metric> metrics) {
+    private static Set<String> getUniqueMetricNames(List<Metrics> metrics) {
         Set<String> uniqueNames = new LinkedHashSet<>();
-        for (Experiment.Metric metric : metrics) {
+        for (Metrics metric : metrics) {
             uniqueNames.add(metric.getMetricsName());
         }
         return uniqueNames;
@@ -61,27 +61,27 @@ public class ExperimentTable {
         return headers;
     }
 
-    private static Map<Integer, List<Experiment.Metric>> mapIterationsToMetrics(List<Experiment.Metric> metrics) {
-        Map<Integer, List<Experiment.Metric>> iterationToMetricsMap = new HashMap<>();
-        for (Experiment.Metric metric : metrics) {
+    private static Map<Integer, List<Metrics>> mapIterationsToMetrics(List<Metrics> metrics) {
+        Map<Integer, List<Metrics>> iterationToMetricsMap = new HashMap<>();
+        for (Metrics metric : metrics) {
             iterationToMetricsMap.computeIfAbsent(metric.getIterationNumber(), k -> new ArrayList<>()).add(metric);
         }
         return iterationToMetricsMap;
     }
 
     private static void addRowsToTable(CommandLine.Help.TextTable table, List<Integer> sortedIterations,
-                                       Map<Integer, List<Experiment.Metric>> iterationToMetricsMap,
+                                       Map<Integer, List<Metrics>> iterationToMetricsMap,
                                        Set<String> uniqueMetricNames) {
         for (int iteration : sortedIterations) {
             String[] row = new String[1 + uniqueMetricNames.size()];
             row[0] = String.valueOf(iteration);
 
-            List<Experiment.Metric> iterationMetrics = iterationToMetricsMap.get(iteration);
+            List<Metrics> iterationMetrics = iterationToMetricsMap.get(iteration);
 
             int idx = 1;
             for (String metricName : uniqueMetricNames) {
                 boolean found = false;
-                for (Experiment.Metric metric : iterationMetrics) {
+                for (Metrics metric : iterationMetrics) {
                     if (metric.getMetricsName().equals(metricName)) {
                         row[idx++] = String.valueOf(metric.getValue());
                         found = true;

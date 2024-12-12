@@ -9,9 +9,14 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.analysis.collector.Observations;
+import org.moeaframework.core.spi.AlgorithmFactory;
+import org.moeaframework.core.spi.ProblemFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 
 @Slf4j
@@ -21,8 +26,12 @@ public class ExperimentService {
     private final ExperimentObservableFactory observableFactory;
     private final ExperimentRepository repository;
     private final MetricsService metricsService;
+    private final Set<String> allRegisteredProblems = ProblemFactory.getInstance().getAllRegisteredProblems();
+    private final Set<String> allAlgorithms = AlgorithmFactory.getInstance().getAllDiagnosticToolAlgorithms();
 
     public int runExperiment(RunExperimentRequest request) {
+        validateProblemAndAlgorithm(request);
+
         Experiment experiment = initializeExperiment(request);
         log.info("Running experiment with request: {}", request);
 
@@ -30,9 +39,18 @@ public class ExperimentService {
                 .subscribeOn(Schedulers.computation())
                 .subscribe(
                         result -> handleSuccess(experiment, result, request),
-                        throwable -> handleError(experiment, throwable, request)
+                        throwable -> handleError(experiment, throwable)
                 );
         return experiment.getId();
+    }
+
+    private void validateProblemAndAlgorithm(RunExperimentRequest request) {
+        if (!allRegisteredProblems.contains(request.getProblemName())) {
+            throw new IllegalArgumentException("Problem not found: " + request.getProblemName());
+        }
+        if (!allAlgorithms.contains(request.getAlgorithm())) {
+            throw new IllegalArgumentException("Algorithm not found: " + request.getAlgorithm());
+        }
     }
 
     private void handleSuccess(Experiment experiment, Observations result, RunExperimentRequest request) {
@@ -49,7 +67,7 @@ public class ExperimentService {
         result.display();
     }
 
-    private void handleError(Experiment experiment, Throwable throwable, RunExperimentRequest request) {
+    private void handleError(Experiment experiment, Throwable throwable) {
         experiment.setStatus(StatusEnum.FAILED);
         Experiment savedExperiment = repository.save(experiment);
         log.error("Experiment with id {} failed: {}", savedExperiment.getId(), throwable.getMessage());
@@ -69,7 +87,7 @@ public class ExperimentService {
         return experiment;
     }
 
-    public Optional<Experiment> getExperimentById(int id){
+    public Optional<Experiment> getExperimentById(int id) {
         return repository.findById(id).map(experiment -> {
             if (experiment.getStatus() == StatusEnum.READY) {
                 experiment.setStatus(StatusEnum.COMPLETED);
@@ -80,7 +98,7 @@ public class ExperimentService {
     }
 
     public List<Experiment> getReadyExperiments() {
-        List<Experiment> experiments =  repository.findByStatus(StatusEnum.READY);
+        List<Experiment> experiments = repository.findByStatus(StatusEnum.READY);
 
         for (Experiment experiment : experiments) {
             experiment.setStatus(StatusEnum.COMPLETED);
@@ -90,7 +108,7 @@ public class ExperimentService {
         return experiments;
     }
 
-    public List<Experiment> getAllExperimentsWithStatus(String status){
+    public List<Experiment> getAllExperimentsWithStatus(String status) {
         if (status == null || status.trim().isEmpty() || status.equalsIgnoreCase("all")) {
             return repository.findAll();
         }

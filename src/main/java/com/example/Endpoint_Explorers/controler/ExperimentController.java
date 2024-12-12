@@ -2,7 +2,6 @@ package com.example.Endpoint_Explorers.controler;
 
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.ExperimentDto;
-import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import com.example.Endpoint_Explorers.service.ExperimentService;
 import jakarta.validation.Valid;
@@ -21,7 +20,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ExperimentController {
     private final ExperimentService service;
-    private final ExperimentRepository experimentRepository;
 
     @PostMapping()
     public ResponseEntity<String> runExperiment(@RequestBody @Valid RunExperimentRequest request) {
@@ -29,11 +27,11 @@ public class ExperimentController {
         log.info("Received experiment request: {}", request);
 
         int experimentId = service.runExperiment(request);
-        return ResponseEntity.ok("Experiment started successfully, experimentID :  " + + experimentId);
+        return ResponseEntity.ok("Experiment started successfully, experimentID :  " + experimentId);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Experiment> getExperimentById(@PathVariable int id){
+    public ResponseEntity<Experiment> getExperimentById(@PathVariable int id) {
         log.info("Getting experiment: {}", id);
         Optional<Experiment> optionalExperiment = service.getExperimentById(id);
         return optionalExperiment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -43,7 +41,7 @@ public class ExperimentController {
     public ResponseEntity<List<ExperimentDto>> getDoneExperiments() {
         List<Experiment> experiments = service.getReadyExperiments();
         List<ExperimentDto> experimentDtos = convertToDtoList(experiments);
-        log.info("Returning {} experiments marked as 'ready'.", experimentDtos.size());
+        log.debug("Returning {} experiments marked as 'ready'.", experimentDtos.size());
         return ResponseEntity.ok(experimentDtos);
     }
 
