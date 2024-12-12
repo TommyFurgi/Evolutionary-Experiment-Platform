@@ -1,15 +1,16 @@
 package com.example.Endpoint_Explorers.service;
 
 
+import com.example.Endpoint_Explorers.mapper.MetricsNameMapper;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.Metrics;
 import com.example.Endpoint_Explorers.repository.MetricsRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import lombok.RequiredArgsConstructor;
-import mapper.MetricsNameMapper;
 import org.moeaframework.analysis.collector.Observation;
 import org.moeaframework.analysis.collector.Observations;
 import org.springframework.stereotype.Service;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ public class MetricsService {
 
         repository.save(metrics);
     }
+
     public Set<String> processMetricsNames(Observations result, RunExperimentRequest request) {
         Set<String> metricsNames;
         if (request.getMetrics().size() == 1 && request.getMetrics().getFirst().equals("all")) {

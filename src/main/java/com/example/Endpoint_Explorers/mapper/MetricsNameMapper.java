@@ -1,4 +1,4 @@
-package mapper;
+package com.example.Endpoint_Explorers.mapper;
 
 import java.util.HashMap;
 import java.util.Map;

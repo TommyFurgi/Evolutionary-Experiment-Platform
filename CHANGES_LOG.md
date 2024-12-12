@@ -36,3 +36,5 @@
 12.12
 - poprawa listowania eksperymentów – dodano możliwość filtrowania eksperymentów po statusie
 - dodanie DTO dla eksperymentów by nie wysyłać niepotrzebnie metryk gdy użytkownik o to nie prosi
+- walidacja algorytmów, problemów oraz metryk podawanych przez użytkownika
+- drobne poprawki w kodzie

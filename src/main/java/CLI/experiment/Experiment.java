@@ -23,7 +23,7 @@ public class Experiment {
     private String status;
 
     @JsonProperty("metricsList")
-    private List<Metric> metrics;
+    private List<Metrics> metrics;
 
     @Override
     public String toString() {
@@ -33,20 +33,5 @@ public class Experiment {
                 ", algorithm='" + algorithm + '\'' +
                 ", numberOfEvaluation=" + numberOfEvaluation +
                 ", status='" + status + '\'';
-    }
-
-    @Getter
-    public static class Metric {
-        @JsonProperty("id")
-        private int id;
-
-        @JsonProperty("metricsName")
-        private String metricsName;
-
-        @JsonProperty("iterationNumber")
-        private int iterationNumber;
-
-        @JsonProperty("value")
-        private float value;
     }
 }

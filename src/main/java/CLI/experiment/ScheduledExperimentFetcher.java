@@ -3,6 +3,7 @@ package CLI.experiment;
 import CLI.config.CliConfig;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -35,7 +36,6 @@ public class ScheduledExperimentFetcher {
             List<Experiment> experiments = parseExperimentList(response);
             experiments.forEach(experiment -> {
                 System.out.println(experiment.toString());
-                //ExperimentTable.displayTable(experiment);
             });
 
         } else {

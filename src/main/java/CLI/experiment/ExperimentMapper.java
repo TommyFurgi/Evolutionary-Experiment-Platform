@@ -14,6 +14,7 @@ public class ExperimentMapper {
             throw new RuntimeException("Error while parsing experiment data: " + e.getMessage());
         }
     }
+
     public static List<Experiment> parseExperimentList(ResponseEntity<String> response) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
