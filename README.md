@@ -235,7 +235,7 @@ help
 
 ### Setup Instructions
 
-1. **Run `docker-compose.yml`**  
+1. **Run**`docker-compose.yml`  
    Execute the `docker-compose.yml` file to set up the database.  
 
    - The credentials for connecting to the database are included in the `docker-compose.yml` file.
@@ -252,7 +252,7 @@ help
 
 ---
 
-## Example Usage 
+## Example usage
 
 
 **By default, experiments are run with all metrics attached and 1,000 evaluations. For example, to run the UF1 problem with the e-MOEA algorithm:**
@@ -344,7 +344,7 @@ list COMPLETED
 - r3-indicator
 - spacing
 
-## Authors 
+## Authors
 
 - **Wiktor Dybalski**  
 - **Tomasz Furgała**  
