@@ -254,21 +254,100 @@ help
 
 ## Example Usage 
 
-### **To run the UF1 problem with the eMOEA algorithm using `GenerationalDistance` as the metrics and 10,000 evaluations:**
+
+**By default, experiments are run with all metrics attached and 1,000 evaluations. For example, to run the UF1 problem with the e-MOEA algorithm:**
+
 
 ```bash
-run UF1 eMOEA -m generational-distance -e 10000
+run UF1 e-MOEA 
 ```
 
-### **To run the UF1 problem with the eMOEA algorithm using default metrics and evaluations:**
+**After starting an experiment, you receive an ID and a message indicating whether the experiment is completed. If the experiment is completed, you can fetch the results using the ID:**
 
 ```bash
-run UF1 eMOEA -m generational-distance -e 10000
+get 1 # if the ID of the experiment is 1
+```
+**You can specify the number of evaluations for an experiment. For instance, to run the DTLZ2 problem with the GDE3 algorithm and 10,000 evaluations:**
+
+```bash
+run DTLZ2 GDE3 -e 10000
 ```
 
+**You can also specify the metrics to compute during the experiment. For example:**
+
+```bash
+run DTLZ2 GDE3 -m generational-distance -e 10000
+```
+
+
+**You can pass multiple metrics separated by spaces:**
+
+```bash
+run WFG8 e-NSGA-II -m spacing archive-size population-size additive-epsilon-indicator
+```
+
+**To try something heavy, you can run the same experiment multiple times. For example, run the following command 8 times:**
+
+```bash
+run UF1 e-MOEA -e 20000
+```
+
+**Now try to see that they are running in the background - list the status of all experiments, use the list command:**
+
+```bash 
+list
+```
+**To filter experiments by a specific status, such as IN_PROGRESS or COMPLETED, use the status as an argument:**
+
+```bash 
+list IN_PROGRESS
+list COMPLETED
+```
+
+
+**You can try other problems**
+- from ZDT1 to  ZDT9
+- from DTLZ1 to DTLZ7
+- from LZ1 to LZ9
+- from CF1 to CF10
+- from UF1 to UF13
+- from WFG1 to WFG9
+
+**Here are some other algorithms**
+
+- AGE-MOEA-II
+- AMOSA
+- DBEA
+- e-NSGA-II
+- GDE3
+- MSOPS
+- NSGA-II
+
+**Here are all the metrics**
+<p style="color:red"><strong>!important</strong> Sometimes we can't compute certain metrics without others.</p>
+
+- elapsed-time
+- additive-epsilon-indicator
+- archive-size
+- contribution
+- generational-distance
+- generational-distance-plus
+- hypervolume
+- inverted-generational-distance
+- inverted-generational-distance-plus
+- maximum-pareto-front-error
+- number-of-dominating-improvements
+- number-of-improvements
+- population-size
+- r1-indicator
+- r2-indicator
+- r3-indicator
+- spacing
 
 ## Authors 
 
 - **Wiktor Dybalski**  
 - **Tomasz Furgała**  
 - **Piotr Śmiałek**  
+
+
