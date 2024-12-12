@@ -16,10 +16,10 @@ public class CliConfig {
     private final String getExperimentUrl = "http://localhost:8080/experiment/";
 
     @Getter
-    private final String getExperimentsTable = "http://localhost:8080/experiment/table";
+    private final String checkStatusUrl = "http://localhost:8080/experiment/ready";
 
     @Getter
-    private final String checkStatusUrl = "http://localhost:8080/experiment/ready";
+    private final String experimentListUrl = "http://localhost:8080/experiment/list/";
 
     private CliConfig() {}
 }

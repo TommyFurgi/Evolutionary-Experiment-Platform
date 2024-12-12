@@ -3,3 +3,13 @@ To run UF1 problem with an eMOEA algorithm with GenerationalDistance and 10000 e
 
 To run UF1 problem with an eMOEA algorithm with default metric and evaluations use:
     run UF1 eMOEA
+
+Get the experiment with ID 1 and display it in table format:
+    get 1
+
+Display a list of all experiments:
+    list
+    list all
+
+Display a list of experiments with the status COMPLETED:
+    list completed

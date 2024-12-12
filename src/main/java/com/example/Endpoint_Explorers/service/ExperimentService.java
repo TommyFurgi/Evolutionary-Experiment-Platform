@@ -11,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.analysis.collector.Observations;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @Slf4j
@@ -93,7 +90,16 @@ public class ExperimentService {
         return experiments;
     }
 
-    public List<Experiment> getAllExperiments(){
-        return repository.findAll();
+    public List<Experiment> getAllExperimentsWithStatus(String status){
+        if (status == null || status.trim().isEmpty() || status.equalsIgnoreCase("all")) {
+            return repository.findAll();
+        }
+
+        try {
+            StatusEnum statusEnum = StatusEnum.valueOf(status.toUpperCase());
+            return repository.findByStatus(statusEnum);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
     }
 }
