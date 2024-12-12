@@ -30,7 +30,7 @@ public class Experiment {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusType status;
+    private StatusEnum status;
 
     @OneToMany(mappedBy = "experiment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Metrics> metricsList;

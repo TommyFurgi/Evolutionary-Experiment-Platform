@@ -18,10 +18,9 @@ public class InteractiveApp implements Runnable {
         Scanner scanner = new Scanner(System.in);
         CommandLine cmd = new CommandLine(this);
 
-        cmd.addSubcommand("echo", new EchoCommand());
-        cmd.addSubcommand("add", new AddCommand());
         cmd.addSubcommand("run", new RunExperimentCommand());
         cmd.addSubcommand("get", new GetExperimentCommand());
+        cmd.addSubcommand("get-all", new GetExperimentsTable());
 
         ScheduledExperimentFetcher puller = new ScheduledExperimentFetcher();
         puller.startRequesting();
@@ -37,6 +36,10 @@ public class InteractiveApp implements Runnable {
                 break;
             }
 
+            if (line.isEmpty()) {
+                cmd.usage(System.out);
+                continue;
+            }
             String[] arguments = line.split(" ");
 
             try {

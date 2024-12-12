@@ -1,8 +1,7 @@
 package CLI.command;
 
+import CLI.config.CliConfig;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
-
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -30,7 +29,7 @@ public class RunExperimentCommand implements Runnable {
         System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
                 problemName, algorithm, metrics, evaluationNumber);
 
-        String url = "http://localhost:8080/experiment";
+        String url = CliConfig.getInstance().getRunExperimentUrl();
 
         RunExperimentRequest request = new RunExperimentRequest(
                 problemName, algorithm, metrics, evaluationNumber);
