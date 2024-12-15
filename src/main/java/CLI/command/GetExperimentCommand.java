@@ -24,7 +24,7 @@ public class GetExperimentCommand implements Runnable {
                 Experiment experiment = ExperimentMapper.parseExperiment(response);
 
                 System.out.println(experiment.toString());
-                if (experiment.getStatus().equals("COMPLETED"))
+                if (experiment.status().equals("COMPLETED"))
                     ExperimentTable.displayTable(experiment);
             } else {
                 System.err.println("Failed to fetch experiment. Status: " + response.getStatusCode());

@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/experiment")
+@RequestMapping("/experiments")
 @RequiredArgsConstructor
 public class ExperimentController {
     private final ExperimentService service;
@@ -33,8 +33,9 @@ public class ExperimentController {
     @GetMapping("/{id}")
     public ResponseEntity<Experiment> getExperimentById(@PathVariable int id) {
         log.info("Getting experiment: {}", id);
-        Optional<Experiment> optionalExperiment = service.getExperimentById(id);
-        return optionalExperiment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return service.getExperimentById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/ready")

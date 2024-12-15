@@ -38,3 +38,9 @@
 - dodanie DTO dla eksperymentów by nie wysyłać niepotrzebnie metryk gdy użytkownik o to nie prosi
 - walidacja algorytmów, problemów oraz metryk podawanych przez użytkownika
 - drobne poprawki w kodzie
+
+15.12
+- code refactoring
+- poprawa kodu w cli - zmiana klas na rekordy, użycie strumienia do wyświetlania tabeli
+- poprawa kodu w serwerze - dodanie transakcyjności do tworzenia eksperymentów, zmiana ExperimentDto na rekord
+- dodanie walidacji metryk - teraz gdy zostanie podana niepoprawna metryka to eksperyment nie zostanie uruchomiony

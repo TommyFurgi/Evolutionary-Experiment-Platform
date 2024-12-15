@@ -2,10 +2,13 @@ package com.example.Endpoint_Explorers.service;
 
 import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
 import com.example.Endpoint_Explorers.model.Experiment;
+import com.example.Endpoint_Explorers.model.MetricTypeEnum;
 import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import jakarta.persistence.Table;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.analysis.collector.Observations;
@@ -29,27 +32,40 @@ public class ExperimentService {
     private final Set<String> allRegisteredProblems = ProblemFactory.getInstance().getAllRegisteredProblems();
     private final Set<String> allAlgorithms = AlgorithmFactory.getInstance().getAllDiagnosticToolAlgorithms();
 
+    @Transactional
     public int runExperiment(RunExperimentRequest request) {
-        validateProblemAndAlgorithm(request);
+        validateRequest(request);
 
         Experiment experiment = initializeExperiment(request);
         log.info("Running experiment with request: {}", request);
 
-        observableFactory.createExperimentObservable(request)
-                .subscribeOn(Schedulers.computation())
-                .subscribe(
-                        result -> handleSuccess(experiment, result, request),
-                        throwable -> handleError(experiment, throwable)
-                );
-        return experiment.getId();
+        try {
+            observableFactory.createExperimentObservable(request)
+                    .subscribeOn(Schedulers.computation())
+                    .subscribe(
+                            result -> handleSuccess(experiment, result, request),
+                            throwable -> handleError(experiment, throwable)
+                    );
+
+            return experiment.getId();
+        } catch (Exception e) {
+            log.error("Transaction failed for experiment: {}", experiment.getId(), e);
+            throw e;
+        }
     }
 
-    private void validateProblemAndAlgorithm(RunExperimentRequest request) {
+    private void validateRequest(RunExperimentRequest request) {
         if (!allRegisteredProblems.contains(request.getProblemName())) {
             throw new IllegalArgumentException("Problem not found: " + request.getProblemName());
         }
         if (!allAlgorithms.contains(request.getAlgorithm())) {
             throw new IllegalArgumentException("Algorithm not found: " + request.getAlgorithm());
+        }
+
+        for (String metricName : request.getMetrics()) {
+            if (MetricTypeEnum.fromString(metricName).isEmpty()) {
+                throw new IllegalArgumentException("Unknown metric specified: " + metricName);
+            }
         }
     }
 
