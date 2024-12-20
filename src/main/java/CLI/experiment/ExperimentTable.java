@@ -7,8 +7,13 @@ import picocli.CommandLine.Help.Column;
 import java.util.*;
 
 public class ExperimentTable {
+    private static final int ITERATION_COLUMN_WIDTH = 20;
+    private static final int COLUMN_PADDING = 2;
+    private static final int DEFAULT_METRIC_COLUMN_WIDTH = 15;
+    private static final int EXTRA_WIDTH_FOR_METRIC_NAME = 5;
+
     public static void displayTable(Experiment experiment) {
-        List<Metrics> metrics = experiment.getMetrics();
+        List<Metrics> metrics = experiment.metrics();
         Set<String> uniqueMetricNames = getUniqueMetricNames(metrics);
         Column[] columns = createColumns(uniqueMetricNames);
 
@@ -32,7 +37,7 @@ public class ExperimentTable {
     private static Set<String> getUniqueMetricNames(List<Metrics> metrics) {
         Set<String> uniqueNames = new LinkedHashSet<>();
         for (Metrics metric : metrics) {
-            uniqueNames.add(metric.getMetricsName());
+            uniqueNames.add(metric.metricsName());
         }
         return uniqueNames;
     }
@@ -41,11 +46,11 @@ public class ExperimentTable {
         int numColumns = 1 + uniqueMetricNames.size();
         Column[] columns = new Column[numColumns];
 
-        columns[0] = new Column(20, 2, Help.Column.Overflow.WRAP);
+        columns[0] = new Column(ITERATION_COLUMN_WIDTH, COLUMN_PADDING, Help.Column.Overflow.WRAP);
         int idx = 1;
         for (String name : uniqueMetricNames) {
-            int width = Math.max(15, name.length() + 5);
-            columns[idx++] = new Column(width, 2, Help.Column.Overflow.WRAP);
+            int width = Math.max(DEFAULT_METRIC_COLUMN_WIDTH, name.length() + EXTRA_WIDTH_FOR_METRIC_NAME);
+            columns[idx++] = new Column(width, COLUMN_PADDING, Help.Column.Overflow.WRAP);
         }
         return columns;
     }
@@ -64,7 +69,7 @@ public class ExperimentTable {
     private static Map<Integer, List<Metrics>> mapIterationsToMetrics(List<Metrics> metrics) {
         Map<Integer, List<Metrics>> iterationToMetricsMap = new HashMap<>();
         for (Metrics metric : metrics) {
-            iterationToMetricsMap.computeIfAbsent(metric.getIterationNumber(), k -> new ArrayList<>()).add(metric);
+            iterationToMetricsMap.computeIfAbsent(metric.iterationNumber(), k -> new ArrayList<>()).add(metric);
         }
         return iterationToMetricsMap;
     }
@@ -72,26 +77,21 @@ public class ExperimentTable {
     private static void addRowsToTable(CommandLine.Help.TextTable table, List<Integer> sortedIterations,
                                        Map<Integer, List<Metrics>> iterationToMetricsMap,
                                        Set<String> uniqueMetricNames) {
+
         for (int iteration : sortedIterations) {
             String[] row = new String[1 + uniqueMetricNames.size()];
             row[0] = String.valueOf(iteration);
 
             List<Metrics> iterationMetrics = iterationToMetricsMap.get(iteration);
+            List<String> metricValues = uniqueMetricNames.stream()
+                    .map(metricName -> iterationMetrics.stream()
+                            .filter(metric -> metric.metricsName().equals(metricName))
+                            .map(metric -> String.valueOf(metric.value()))
+                            .findFirst()
+                            .orElse("-"))
+                    .toList();
 
-            int idx = 1;
-            for (String metricName : uniqueMetricNames) {
-                boolean found = false;
-                for (Metrics metric : iterationMetrics) {
-                    if (metric.getMetricsName().equals(metricName)) {
-                        row[idx++] = String.valueOf(metric.getValue());
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    row[idx++] = "-";
-                }
-            }
+            System.arraycopy(metricValues.toArray(new String[0]), 0, row, 1, metricValues.size());
             table.addRowValues(row);
         }
     }

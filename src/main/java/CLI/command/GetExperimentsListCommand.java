@@ -52,11 +52,11 @@ public class GetExperimentsListCommand implements Runnable {
 
         for (Experiment experiment : experiments) {
             System.out.printf("%-5d %-15d %-15s %-15s %-15s%n",
-                    experiment.getId(),
-                    experiment.getNumberOfEvaluation(),
-                    experiment.getAlgorithm(),
-                    experiment.getProblemName(),
-                    experiment.getStatus());
+                    experiment.id(),
+                    experiment.numberOfEvaluation(),
+                    experiment.algorithm(),
+                    experiment.problemName(),
+                    experiment.status());
         }
     }
 }

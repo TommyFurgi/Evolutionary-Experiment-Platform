@@ -12,10 +12,11 @@ import java.util.concurrent.TimeUnit;
 import static CLI.experiment.ExperimentMapper.parseExperimentList;
 
 public class ScheduledExperimentFetcher {
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private final RestTemplate restTemplate = new RestTemplate();
     private static final int INITIAL_DELAY = 4;
     private static final int PERIOD = 2;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final RestTemplate restTemplate = new RestTemplate();
+
 
     public void startRequesting() {
         scheduler.scheduleAtFixedRate(this::sendRequest, INITIAL_DELAY, PERIOD, TimeUnit.SECONDS);
