@@ -30,6 +30,15 @@ public class ExperimentController {
         return ResponseEntity.ok("Experiment started successfully, experimentID :  " + experimentId);
     }
 
+    @PostMapping("/many")
+    public ResponseEntity<String> runExperiments(@RequestBody @Valid RunExperimentRequest request) {
+        System.out.println("Received experiments request: " + request);
+        log.info("Received experiments request: {}", request);
+
+        List<Integer> experimentsId = service.runExperiments(request);
+        return ResponseEntity.ok("Experiments started successfully, experimentIDs:  " + experimentsId);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Experiment> getExperimentById(@PathVariable int id) {
         log.info("Getting experiment: {}", id);
@@ -69,7 +78,8 @@ public class ExperimentController {
                 experiment.getProblemName(),
                 experiment.getAlgorithm(),
                 experiment.getNumberOfEvaluation(),
-                experiment.getStatus()
+                experiment.getStatus(),
+                experiment.getDatatime()
         );
     }
 }

@@ -2,24 +2,17 @@ package CLI.config;
 
 import lombok.Getter;
 
+@Getter
 public class CliConfig {
     @Getter
     private static final CliConfig instance = new CliConfig();
-
-    @Getter
     private final String baseUrl = "http://localhost:8080/";
-
-    @Getter
     private final String runExperimentUrl = "http://localhost:8080/experiments";
-
-    @Getter
+    private final String runExperimentsUrl = "http://localhost:8080/experiments/many";
     private final String getExperimentUrl = "http://localhost:8080/experiments/";
-
-    @Getter
     private final String checkStatusUrl = "http://localhost:8080/experiments/ready";
-
-    @Getter
     private final String experimentListUrl = "http://localhost:8080/experiments/list/";
+    private final String statsUrl = "http://localhost:8080/stats";
 
     private CliConfig() {
     }
