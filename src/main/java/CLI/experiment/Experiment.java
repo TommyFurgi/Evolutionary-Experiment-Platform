@@ -1,30 +1,17 @@
 package CLI.experiment;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
 
 import java.util.List;
 
-@Getter
-public class Experiment {
-    @JsonProperty("id")
-    private int id;
-
-    @JsonProperty("problemName")
-    private String problemName;
-
-    @JsonProperty("algorithm")
-    private String algorithm;
-
-    @JsonProperty("numberOfEvaluation")
-    private int numberOfEvaluation;
-
-    @JsonProperty("status")
-    private String status;
-
-    @JsonProperty("metricsList")
-    private List<Metrics> metrics;
-
+public record Experiment(
+        @JsonProperty("id") int id,
+        @JsonProperty("problemName") String problemName,
+        @JsonProperty("algorithm") String algorithm,
+        @JsonProperty("numberOfEvaluation") int numberOfEvaluation,
+        @JsonProperty("status") String status,
+        @JsonProperty("metricsList") List<Metrics> metrics
+) {
     @Override
     public String toString() {
         return "Experiment " +
