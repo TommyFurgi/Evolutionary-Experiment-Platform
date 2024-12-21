@@ -11,7 +11,7 @@ public record Experiment(
         @JsonProperty("algorithm") String algorithm,
         @JsonProperty("numberOfEvaluation") int numberOfEvaluation,
         @JsonProperty("status") String status,
-        @JsonProperty("datatime") Timestamp datatime,
+        @JsonProperty("datetime") Timestamp datetime,
         @JsonProperty("metricsList") List<Metrics> metrics
 ) {
     @Override
@@ -21,7 +21,7 @@ public record Experiment(
                 ", problemName='" + problemName + '\'' +
                 ", algorithm='" + algorithm + '\'' +
                 ", numberOfEvaluation=" + numberOfEvaluation +
-                ", datatime=" + datatime +
+                ", datetime=" + datetime +
                 ", status='" + status + '\'';
     }
 }

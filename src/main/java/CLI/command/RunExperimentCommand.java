@@ -9,7 +9,7 @@ import picocli.CommandLine.Parameters;
 
 import java.util.List;
 
-@Command(name = "run", description = "Run an experiment on the server")
+@Command(name = "run", description = "Run an experiment on the server ( run UF1 e-MOEA )")
 public class RunExperimentCommand implements Runnable {
 
     @Parameters(index = "0", description = "Name of the problem to solve")

@@ -79,7 +79,7 @@ public class ExperimentController {
                 experiment.getAlgorithm(),
                 experiment.getNumberOfEvaluation(),
                 experiment.getStatus(),
-                experiment.getDatatime()
+                experiment.getDatetime()
         );
     }
 }

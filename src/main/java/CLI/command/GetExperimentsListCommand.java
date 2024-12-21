@@ -17,6 +17,7 @@ public class GetExperimentsListCommand implements Runnable {
     @Override
     public void run() {
         String url = CliConfig.getInstance().getExperimentListUrl() + experimentStatus;
+        System.out.println(url);
         RestTemplate restTemplate = new RestTemplate();
 
         try {

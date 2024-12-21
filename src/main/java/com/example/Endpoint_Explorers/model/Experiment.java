@@ -34,7 +34,7 @@ public class Experiment {
     private StatusEnum status;
 
     @Column(nullable = false)
-    private Timestamp datatime;
+    private Timestamp datetime;
 
     @OneToMany(mappedBy = "experiment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Metrics> metricsList;

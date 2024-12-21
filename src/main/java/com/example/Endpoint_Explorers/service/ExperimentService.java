@@ -110,7 +110,7 @@ public class ExperimentService {
                 .algorithm(request.getAlgorithm())
                 .numberOfEvaluation(request.getEvaluationNumber())
                 .status(StatusEnum.IN_PROGRESS)
-                .datatime(new Timestamp(System.currentTimeMillis()))
+                .datetime(new Timestamp(System.currentTimeMillis()))
                 .metricsList(new ArrayList<>())
                 .build();
 
