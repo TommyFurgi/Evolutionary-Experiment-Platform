@@ -36,6 +36,9 @@ public class GetStatsCommand implements Runnable {
     )
     private String endDateTime;
 
+    @CommandLine.Option(names = {"-a", "--statType"}, description = "Type of Statistics measure (default: median)", defaultValue = "median")
+    private String statType;
+
     @Override
     public void run() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -66,7 +69,8 @@ public class GetStatsCommand implements Runnable {
                 .queryParam("problemName", problemName)
                 .queryParam("algorithm", algorithm)
                 .queryParam("startDateTime", start.format(formatter))
-                .queryParam("endDateTime", end.format(formatter));
+                .queryParam("endDateTime", end.format(formatter))
+                .queryParam("statType", statType);
 
         String finalUrl = builder.build().toUriString();
 
@@ -83,18 +87,39 @@ public class GetStatsCommand implements Runnable {
     }
 
     public void printMetrics(Map<String, List<Double>> metricsMap) {
+        System.out.println("\nStatistics for the following input:");
+        System.out.print("Problem: " + problemName);
+        System.out.print(", Algorithm: " + algorithm);
+        System.out.print(", Start DateTime: " + startDateTime);
+        System.out.print(", End DateTime: " + (endDateTime.isEmpty() ? "Current Time" : endDateTime));
+        System.out.print(", Stat Type: " + statType);
+        System.out.print("\n-----------------------------------\n");
+
+
+        int maxEvaluations = metricsMap.values().stream()
+                .mapToInt(List::size)
+                .max()
+                .orElse(0);
+
+        System.out.printf("%-35s", "Metric Name");
+        for (int i = 1; i <= maxEvaluations; i++) {
+            System.out.printf("%-12s", "NFE" + (i * 100));
+        }
+        System.out.println();
+        System.out.println("----------------------------------------------------------------------------------");
+
         metricsMap.forEach((key, values) -> {
-            System.out.println("MetricsName: " + key);
-            if (values == null || values.isEmpty()) {
-                System.out.println("Brak wartości.");
-            } else {
-                String formattedValues = values.stream()
-                        .map(value -> String.format("%.2f", value))
-                        .collect(java.util.stream.Collectors.joining(", "));
-                System.out.println("  AvgValues: [" + formattedValues + "]");
+            System.out.printf("%-35s", key);
+            for (int i = 0; i < maxEvaluations; i++) {
+                if (i < values.size()) {
+                    System.out.printf("%-12.2f", values.get(i));
+                } else {
+                    System.out.printf("%-10s", "N/A");
+                }
             }
-            System.out.println("-----------------------------------");
+            System.out.println();
         });
+        System.out.println("----------------------------------------------------------------------------------");
     }
 }
 

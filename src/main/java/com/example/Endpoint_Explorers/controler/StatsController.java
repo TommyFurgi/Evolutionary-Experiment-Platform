@@ -20,7 +20,8 @@ public class StatsController {
     public Map<String, List<Double>> getStats(@RequestParam("problemName") String problemName,
                                               @RequestParam("algorithm") String algorithm,
                                               @RequestParam("startDateTime") String start,
-                                              @RequestParam("endDateTime") String end) {
-        return service.getStatsTimeFromInterval(problemName, algorithm, start, end);
+                                              @RequestParam("endDateTime") String end,
+                                              @RequestParam("statType") String statType) {
+        return service.getStatsTimeFromInterval(problemName, algorithm, start, end, statType);
     }
 }
