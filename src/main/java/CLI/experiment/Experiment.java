@@ -2,6 +2,7 @@ package CLI.experiment;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public record Experiment(
@@ -10,6 +11,7 @@ public record Experiment(
         @JsonProperty("algorithm") String algorithm,
         @JsonProperty("numberOfEvaluation") int numberOfEvaluation,
         @JsonProperty("status") String status,
+        @JsonProperty("datetime") Timestamp datetime,
         @JsonProperty("metricsList") List<Metrics> metrics
 ) {
     @Override
@@ -19,6 +21,7 @@ public record Experiment(
                 ", problemName='" + problemName + '\'' +
                 ", algorithm='" + algorithm + '\'' +
                 ", numberOfEvaluation=" + numberOfEvaluation +
+                ", datetime=" + datetime +
                 ", status='" + status + '\'';
     }
 }

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Data
@@ -31,6 +32,9 @@ public class Experiment {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusEnum status;
+
+    @Column(nullable = false)
+    private Timestamp datetime;
 
     @OneToMany(mappedBy = "experiment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Metrics> metricsList;

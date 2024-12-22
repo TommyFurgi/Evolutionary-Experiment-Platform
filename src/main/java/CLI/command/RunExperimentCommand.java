@@ -9,7 +9,7 @@ import picocli.CommandLine.Parameters;
 
 import java.util.List;
 
-@Command(name = "run", description = "Run an experiment on the server")
+@Command(name = "run", description = "Run an experiment on the server ( run UF1 e-MOEA )")
 public class RunExperimentCommand implements Runnable {
 
     @Parameters(index = "0", description = "Name of the problem to solve")
@@ -24,22 +24,38 @@ public class RunExperimentCommand implements Runnable {
     @CommandLine.Option(names = {"-e", "--evaluations"}, description = "Number of evaluations (default: 10000)", defaultValue = "1000")
     private Integer evaluationNumber;
 
+    @CommandLine.Option(names = {"-n", "--experimentIterationNumber"}, description = "Number of experiment iteration (default: 1)", defaultValue = "1")
+    private Integer experimentIterationNumber;
+
     @Override
     public void run() {
-        System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
-                problemName, algorithm, metrics, evaluationNumber);
-
-        String url = CliConfig.getInstance().getRunExperimentUrl();
+        String urlExperiment = CliConfig.getInstance().getRunExperimentUrl();
+        String urlExperiments = CliConfig.getInstance().getRunExperimentsUrl();
 
         RunExperimentRequest request = new RunExperimentRequest(
-                problemName, algorithm, metrics, evaluationNumber);
+                problemName, algorithm, metrics, evaluationNumber, experimentIterationNumber);
+        RestTemplate restTemplate = new RestTemplate();
 
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            String response = restTemplate.postForObject(url, request, String.class);
-            System.out.println("Server response: " + response);
-        } catch (Exception e) {
-            System.err.println("Error while running experiment: " + e.getMessage());
+//        TODO: We don't have a case sensitivity validation. For instance: run uf1 and run UF1 are the same problems
+//         but have a different name in DB
+        if (experimentIterationNumber == 1) {
+            System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
+                    problemName, algorithm, metrics, evaluationNumber);
+            try {
+                String response = restTemplate.postForObject(urlExperiment, request, String.class);
+                System.out.println("Server response: " + response);
+            } catch (Exception e) {
+                System.err.println("Error while running experiment: " + e.getMessage());
+            }
+        } else if (experimentIterationNumber > 1) {
+            System.out.printf("Preparing to run %d experiments:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
+                    experimentIterationNumber, problemName, algorithm, metrics, evaluationNumber);
+            try {
+                String response = restTemplate.postForObject(urlExperiments, request, String.class);
+                System.out.println("Server response: " + response);
+            } catch (Exception e) {
+                System.err.println("Error while running experiments: " + e.getMessage());
+            }
         }
     }
 }

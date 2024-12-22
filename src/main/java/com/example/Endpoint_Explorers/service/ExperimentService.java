@@ -7,7 +7,6 @@ import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import jakarta.persistence.Table;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +15,7 @@ import org.moeaframework.core.spi.AlgorithmFactory;
 import org.moeaframework.core.spi.ProblemFactory;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +31,21 @@ public class ExperimentService {
     private final MetricsService metricsService;
     private final Set<String> allRegisteredProblems = ProblemFactory.getInstance().getAllRegisteredProblems();
     private final Set<String> allAlgorithms = AlgorithmFactory.getInstance().getAllDiagnosticToolAlgorithms();
+
+
+    public List<Integer> runExperiments(RunExperimentRequest request) {
+        int n = request.getExperimentIterationNumber();
+        List<Integer> experimentIds = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            try {
+                experimentIds.add(runExperiment(request));
+            } catch (Exception e) {
+                log.error("Something failed for one of experiments. List of created experiments without an error: {}", experimentIds);
+                throw e;
+            }
+        }
+        return experimentIds;
+    }
 
     @Transactional
     public int runExperiment(RunExperimentRequest request) {
@@ -95,6 +110,7 @@ public class ExperimentService {
                 .algorithm(request.getAlgorithm())
                 .numberOfEvaluation(request.getEvaluationNumber())
                 .status(StatusEnum.IN_PROGRESS)
+                .datetime(new Timestamp(System.currentTimeMillis()))
                 .metricsList(new ArrayList<>())
                 .build();
 

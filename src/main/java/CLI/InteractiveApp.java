@@ -1,9 +1,6 @@
 package CLI;
 
-import CLI.command.ExitCommand;
-import CLI.command.GetExperimentCommand;
-import CLI.command.GetExperimentsListCommand;
-import CLI.command.RunExperimentCommand;
+import CLI.command.*;
 import CLI.experiment.ScheduledExperimentFetcher;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -24,6 +21,7 @@ public class InteractiveApp implements Runnable {
         cmd.addSubcommand("run", new RunExperimentCommand());
         cmd.addSubcommand("get", new GetExperimentCommand());
         cmd.addSubcommand("list", new GetExperimentsListCommand());
+        cmd.addSubcommand("getStats", new GetStatsCommand());
 
         ScheduledExperimentFetcher puller = new ScheduledExperimentFetcher();
         puller.startRequesting();
