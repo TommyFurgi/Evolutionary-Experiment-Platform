@@ -6,7 +6,7 @@ import picocli.CommandLine.Help.Column;
 
 import java.util.*;
 
-public class ExperimentTable {
+public class DataPrinter {
     private static final int ITERATION_COLUMN_WIDTH = 20;
     private static final int COLUMN_PADDING = 2;
     private static final int DEFAULT_METRIC_COLUMN_WIDTH = 15;
@@ -93,6 +93,57 @@ public class ExperimentTable {
 
             System.arraycopy(metricValues.toArray(new String[0]), 0, row, 1, metricValues.size());
             table.addRowValues(row);
+        }
+    }
+
+    public static void printStats(String problemName, String algorithm, String startDateTime,
+                                  String endDateTime, String statType, Map<String, List<Double>> metricsMap) {
+        System.out.println("\nStatistics for the following input:");
+        System.out.print("Problem: " + problemName);
+        System.out.print(", Algorithm: " + algorithm);
+        System.out.print(", Start DateTime: " + startDateTime);
+        System.out.print(", End DateTime: " + (endDateTime.isEmpty() ? "Current Time" : endDateTime));
+        System.out.print(", Stat Type: " + statType);
+        System.out.print("\n-----------------------------------\n");
+
+
+        int maxEvaluations = metricsMap.values().stream()
+                .mapToInt(List::size)
+                .max()
+                .orElse(0);
+
+        System.out.printf("%-35s", "Metric Name");
+        for (int i = 1; i <= maxEvaluations; i++) {
+            System.out.printf("%-12s", "NFE" + (i * 100));
+        }
+        System.out.println();
+        System.out.println("----------------------------------------------------------------------------------");
+
+        metricsMap.forEach((key, values) -> {
+            System.out.printf("%-35s", key);
+            for (int i = 0; i < maxEvaluations; i++) {
+                if (i < values.size()) {
+                    System.out.printf("%-12.2f", values.get(i));
+                } else {
+                    System.out.printf("%-10s", "N/A");
+                }
+            }
+            System.out.println();
+        });
+        System.out.println("----------------------------------------------------------------------------------");
+    }
+
+    public static void displayExperimentsList(List<Experiment> experiments) {
+        System.out.printf("%-5s %-15s %-15s %-15s %-15s%n", "ID", "Evaluations", "Algorithm", "Problem", "Status");
+        System.out.println("----------------------------------------------------------------------");
+
+        for (Experiment experiment : experiments) {
+            System.out.printf("%-5d %-15d %-15s %-15s %-15s%n",
+                    experiment.id(),
+                    experiment.numberOfEvaluation(),
+                    experiment.algorithm(),
+                    experiment.problemName(),
+                    experiment.status());
         }
     }
 }

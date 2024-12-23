@@ -11,9 +11,8 @@ import java.util.Optional;
 @Slf4j
 @Component
 public class InstrumenterFactory {
-    private static final int FREQUENCY = 100;
 
-    public Instrumenter createInstrumenter(RunExperimentRequest request) {
+    public Instrumenter createInstrumenter(RunExperimentRequest request, int FREQUENCY) {
         Instrumenter instrumenter = new Instrumenter()
                 .withProblem(request.getProblemName())
                 .withFrequency(FREQUENCY);

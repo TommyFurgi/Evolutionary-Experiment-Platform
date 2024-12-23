@@ -1,9 +1,12 @@
 package CLI.command;
 
 import CLI.config.CliConfig;
+import CLI.experiment.DataPrinter;
 import CLI.experiment.Experiment;
 import CLI.experiment.ExperimentMapper;
+import CLI.handler.GlobalExceptionHandler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 
@@ -17,21 +20,20 @@ public class GetExperimentsListCommand implements Runnable {
     @Override
     public void run() {
         String url = CliConfig.getInstance().getExperimentListUrl() + experimentStatus;
-        System.out.println(url);
         RestTemplate restTemplate = new RestTemplate();
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 List<Experiment> experiments = ExperimentMapper.parseExperimentList(response);
-                displayTable(experiments);
+                DataPrinter.displayExperimentsList(experiments);
             } else if (response.getStatusCode().is4xxClientError()) {
                 handleClientError(response);
             } else {
                 System.err.println("Failed to fetch experiments. Status: " + response.getStatusCode());
             }
-        } catch (Exception e) {
-            System.err.println("Error while getting experiments: " + e.getMessage());
+        } catch (HttpClientErrorException e) {
+            GlobalExceptionHandler.handleHttpClientError(e, "Error while getting experiments: ");
         }
     }
 
@@ -44,20 +46,6 @@ public class GetExperimentsListCommand implements Runnable {
             }
         } catch (Exception e) {
             System.err.println("Failed to parse available statuses from the response.");
-        }
-    }
-
-    private void displayTable(List<Experiment> experiments) {
-        System.out.printf("%-5s %-15s %-15s %-15s %-15s%n", "ID", "Evaluations", "Algorithm", "Problem", "Status");
-        System.out.println("----------------------------------------------------------------------");
-
-        for (Experiment experiment : experiments) {
-            System.out.printf("%-5d %-15d %-15s %-15s %-15s%n",
-                    experiment.id(),
-                    experiment.numberOfEvaluation(),
-                    experiment.algorithm(),
-                    experiment.problemName(),
-                    experiment.status());
         }
     }
 }

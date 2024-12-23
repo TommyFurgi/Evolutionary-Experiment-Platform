@@ -7,6 +7,7 @@ import com.example.Endpoint_Explorers.service.ExperimentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,13 +57,13 @@ public class ExperimentController {
     }
 
     @GetMapping("/list/{status}")
-    public ResponseEntity<List<ExperimentDto>> getExperimentsList(@PathVariable String status) {
+    public ResponseEntity<?> getExperimentsList(@PathVariable String status) {
         try {
             List<Experiment> experiments = service.getAllExperimentsWithStatus(status);
             List<ExperimentDto> experimentDtos = convertToDtoList(experiments);
             return ResponseEntity.ok(experimentDtos);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Collections.emptyList());
+            return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
         }
     }
 

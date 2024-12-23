@@ -3,8 +3,10 @@ package CLI.command;
 import CLI.config.CliConfig;
 import CLI.experiment.Experiment;
 import CLI.experiment.ExperimentMapper;
-import CLI.experiment.ExperimentTable;
+import CLI.experiment.DataPrinter;
+import CLI.handler.GlobalExceptionHandler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 
@@ -20,17 +22,14 @@ public class GetExperimentCommand implements Runnable {
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                Experiment experiment = ExperimentMapper.parseExperiment(response);
 
-                System.out.println(experiment.toString());
-                if (experiment.status().equals("COMPLETED"))
-                    ExperimentTable.displayTable(experiment);
-            } else {
-                System.err.println("Failed to fetch experiment. Status: " + response.getStatusCode());
-            }
-        } catch (Exception e) {
-            System.err.println("Error while getting experiment: " + e.getMessage());
+            Experiment experiment = ExperimentMapper.parseExperiment(response);
+
+            if (experiment.status().equals("COMPLETED"))
+                DataPrinter.displayTable(experiment);
+
+        } catch (HttpClientErrorException e) {
+            GlobalExceptionHandler.handleHttpClientError(e, "Error while getting experiment: Experiment with id: " + experimentId + " not found");
         }
     }
 }

@@ -44,3 +44,8 @@
 - poprawa kodu w cli - zmiana klas na rekordy, użycie strumienia do wyświetlania tabeli
 - poprawa kodu w serwerze - dodanie transakcyjności do tworzenia eksperymentów, zmiana ExperimentDto na rekord
 - dodanie walidacji metryk - teraz gdy zostanie podana niepoprawna metryka to eksperyment nie zostanie uruchomiony
+
+23.12
+- code refactoring
+- dodanie obsługi błędów przy pobieraniu statystyk
+- poprawa obsługi błędów w cli

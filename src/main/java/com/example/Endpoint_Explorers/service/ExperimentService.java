@@ -1,6 +1,7 @@
 package com.example.Endpoint_Explorers.service;
 
 import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
+import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.MetricTypeEnum;
 import com.example.Endpoint_Explorers.model.StatusEnum;
@@ -29,8 +30,7 @@ public class ExperimentService {
     private final ExperimentObservableFactory observableFactory;
     private final ExperimentRepository repository;
     private final MetricsService metricsService;
-    private final Set<String> allRegisteredProblems = ProblemFactory.getInstance().getAllRegisteredProblems();
-    private final Set<String> allAlgorithms = AlgorithmFactory.getInstance().getAllDiagnosticToolAlgorithms();
+    private final ExperimentValidator validator;
 
 
     public List<Integer> runExperiments(RunExperimentRequest request) {
@@ -49,7 +49,13 @@ public class ExperimentService {
 
     @Transactional
     public int runExperiment(RunExperimentRequest request) {
-        validateRequest(request);
+        validator.validateExperimentParams(
+                request.getProblemName(),
+                request.getAlgorithm(),
+                request.getMetrics(),
+                request.getEvaluationNumber(),
+                request.getExperimentIterationNumber()
+        );
 
         Experiment experiment = initializeExperiment(request);
         log.info("Running experiment with request: {}", request);
@@ -66,21 +72,6 @@ public class ExperimentService {
         } catch (Exception e) {
             log.error("Transaction failed for experiment: {}", experiment.getId(), e);
             throw e;
-        }
-    }
-
-    private void validateRequest(RunExperimentRequest request) {
-        if (!allRegisteredProblems.contains(request.getProblemName())) {
-            throw new IllegalArgumentException("Problem not found: " + request.getProblemName());
-        }
-        if (!allAlgorithms.contains(request.getAlgorithm())) {
-            throw new IllegalArgumentException("Algorithm not found: " + request.getAlgorithm());
-        }
-
-        for (String metricName : request.getMetrics()) {
-            if (MetricTypeEnum.fromString(metricName).isEmpty()) {
-                throw new IllegalArgumentException("Unknown metric specified: " + metricName);
-            }
         }
     }
 

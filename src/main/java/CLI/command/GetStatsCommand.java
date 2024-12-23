@@ -1,8 +1,13 @@
 package CLI.command;
 
 import CLI.config.CliConfig;
+import CLI.experiment.DataPrinter;
+import CLI.handler.GlobalExceptionHandler;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import picocli.CommandLine;
@@ -77,50 +82,18 @@ public class GetStatsCommand implements Runnable {
         try {
             String response = restTemplate.getForObject(finalUrl, String.class);
             ObjectMapper objectMapper = new ObjectMapper();
+
             Map<String, List<Double>> metricsMap = objectMapper.readValue(response, new TypeReference<>() {
             });
-            printMetrics(metricsMap);
+            DataPrinter.printStats(problemName, algorithm, startDateTime, endDateTime, statType, metricsMap);
 
-        } catch (Exception e) {
-            System.err.println("Failed to fetch stats: " + e.getMessage());
+        } catch (HttpClientErrorException e) {
+            GlobalExceptionHandler.handleHttpClientError(e, "Failed to fetch statistics: ");
+        } catch (JsonMappingException e) {
+            GlobalExceptionHandler.handleJsonMappingError(e);
+        } catch (JsonProcessingException e) {
+            GlobalExceptionHandler.handleJsonProcessingError(e);
         }
     }
 
-    public void printMetrics(Map<String, List<Double>> metricsMap) {
-        System.out.println("\nStatistics for the following input:");
-        System.out.print("Problem: " + problemName);
-        System.out.print(", Algorithm: " + algorithm);
-        System.out.print(", Start DateTime: " + startDateTime);
-        System.out.print(", End DateTime: " + (endDateTime.isEmpty() ? "Current Time" : endDateTime));
-        System.out.print(", Stat Type: " + statType);
-        System.out.print("\n-----------------------------------\n");
-
-
-        int maxEvaluations = metricsMap.values().stream()
-                .mapToInt(List::size)
-                .max()
-                .orElse(0);
-
-        System.out.printf("%-35s", "Metric Name");
-        for (int i = 1; i <= maxEvaluations; i++) {
-            System.out.printf("%-12s", "NFE" + (i * 100));
-        }
-        System.out.println();
-        System.out.println("----------------------------------------------------------------------------------");
-
-        metricsMap.forEach((key, values) -> {
-            System.out.printf("%-35s", key);
-            for (int i = 0; i < maxEvaluations; i++) {
-                if (i < values.size()) {
-                    System.out.printf("%-12.2f", values.get(i));
-                } else {
-                    System.out.printf("%-10s", "N/A");
-                }
-            }
-            System.out.println();
-        });
-        System.out.println("----------------------------------------------------------------------------------");
-    }
 }
-
-

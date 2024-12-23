@@ -36,8 +36,6 @@ public class RunExperimentCommand implements Runnable {
                 problemName, algorithm, metrics, evaluationNumber, experimentIterationNumber);
         RestTemplate restTemplate = new RestTemplate();
 
-//        TODO: We don't have a case sensitivity validation. For instance: run uf1 and run UF1 are the same problems
-//         but have a different name in DB
         if (experimentIterationNumber == 1) {
             System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
                     problemName, algorithm, metrics, evaluationNumber);
