@@ -3,7 +3,6 @@ package com.example.Endpoint_Explorers.service;
 import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
 import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
-import com.example.Endpoint_Explorers.model.MetricTypeEnum;
 import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
@@ -12,15 +11,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.analysis.collector.Observations;
-import org.moeaframework.core.spi.AlgorithmFactory;
-import org.moeaframework.core.spi.ProblemFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -97,8 +92,8 @@ public class ExperimentService {
 
     private Experiment initializeExperiment(RunExperimentRequest request) {
         Experiment experiment = Experiment.builder()
-                .problemName(request.getProblemName())
-                .algorithm(request.getAlgorithm())
+                .problemName(request.getProblemName().toLowerCase())
+                .algorithm(request.getAlgorithm().toLowerCase())
                 .numberOfEvaluation(request.getEvaluationNumber())
                 .status(StatusEnum.IN_PROGRESS)
                 .datetime(new Timestamp(System.currentTimeMillis()))
@@ -131,16 +126,23 @@ public class ExperimentService {
         return experiments;
     }
 
-    public List<Experiment> getAllExperimentsWithStatus(String status) {
-        if (status == null || status.trim().isEmpty() || status.equalsIgnoreCase("all")) {
-            return repository.findAll();
-        }
+    public List<Experiment> getFilteredExperiments(List<String> statuses, List<String> problems, List<String> algorithms, List<String> metrics) {
+        validator.validateListParams(statuses, problems, algorithms, metrics);
 
-        try {
-            StatusEnum statusEnum = StatusEnum.valueOf(status.toUpperCase());
-            return repository.findByStatus(statusEnum);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid status: " + status);
+        Set<String> filteredStatuses = (statuses.isEmpty() || statuses.get(0).isEmpty()) ? null : new HashSet<>(statuses);
+        Set<String> filteredProblems = convertListToLowerCaseSet(problems);
+        Set<String> filteredAlgorithms = convertListToLowerCaseSet(algorithms);
+        Set<String> filteredMetrics = convertListToLowerCaseSet(metrics);
+
+        return repository.findFilteredExperiments(filteredStatuses, filteredProblems, filteredAlgorithms, filteredMetrics);
+    }
+
+    private Set<String> convertListToLowerCaseSet(List<String> list) {
+        if (list == null || list.isEmpty() || list.get(0).isEmpty()) {
+            return null;
         }
+        return list.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
     }
 }

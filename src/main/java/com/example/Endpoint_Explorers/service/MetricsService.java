@@ -21,7 +21,7 @@ public class MetricsService {
 
     public void saveMetrics(String metricsName, Experiment experiment, int evaluationNumber, float value) {
         Metrics metrics = Metrics.builder()
-                .metricsName(metricsName)
+                .metricsName(metricsName.toLowerCase())
                 .experiment(experiment)
                 .iterationNumber(evaluationNumber)
                 .value(value)
@@ -48,7 +48,7 @@ public class MetricsService {
         for (Observation observation : result) {
             for (String metricsName : metricsNames) {
                 float value = ((Number) observation.get(metricsName)).floatValue();
-                saveMetrics(metricsName, experiment, observation.getNFE(), value);
+                saveMetrics(metricsName.replace(" ", "-"), experiment, observation.getNFE(), value);
             }
         }
     }

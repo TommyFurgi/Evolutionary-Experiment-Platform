@@ -63,8 +63,8 @@ public class StatisticsService {
     }
 
     private List<Experiment> extractExperiments(String algorithm, String problemName, Timestamp startDate, Timestamp endDate) {
-        List<Experiment> experiments = experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetweenIgnoreCase(
-                algorithm, problemName, StatusEnum.COMPLETED, startDate, endDate);
+        List<Experiment> experiments = experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
+                algorithm.toLowerCase(), problemName.toLowerCase(), StatusEnum.COMPLETED, startDate, endDate);
 
         if (experiments.isEmpty()) {
             throw new IllegalArgumentException("No experiments found in the specified time interval.");

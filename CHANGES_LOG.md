@@ -49,3 +49,4 @@
 - code refactoring
 - dodanie obsługi błędów przy pobieraniu statystyk
 - poprawa obsługi błędów w cli
+- dodanie możliwości listowania eksperymentów po algorytmach, nazwie problemu oraz po metrykach

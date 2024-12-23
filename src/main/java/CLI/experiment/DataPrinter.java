@@ -134,16 +134,17 @@ public class DataPrinter {
     }
 
     public static void displayExperimentsList(List<Experiment> experiments) {
-        System.out.printf("%-5s %-15s %-15s %-15s %-15s%n", "ID", "Evaluations", "Algorithm", "Problem", "Status");
-        System.out.println("----------------------------------------------------------------------");
+        System.out.printf("%-5s %-15s %-15s %-15s %-15s %-25s%n", "ID", "Evaluations", "Algorithm", "Problem", "Status", "Date");
+        System.out.println("---------------------------------------------------------------------------------------------");
 
         for (Experiment experiment : experiments) {
-            System.out.printf("%-5d %-15d %-15s %-15s %-15s%n",
+            System.out.printf("%-5d %-15d %-15s %-15s %-15s %-25s%n",
                     experiment.id(),
                     experiment.numberOfEvaluation(),
                     experiment.algorithm(),
                     experiment.problemName(),
-                    experiment.status());
+                    experiment.status(),
+                    experiment.datetime());
         }
     }
 }

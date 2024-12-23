@@ -1,6 +1,7 @@
 package com.example.Endpoint_Explorers.component;
 
 import com.example.Endpoint_Explorers.model.MetricTypeEnum;
+import com.example.Endpoint_Explorers.model.StatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.core.spi.AlgorithmFactory;
 import org.moeaframework.core.spi.ProblemFactory;
@@ -30,7 +31,15 @@ public class ExperimentValidator {
         validateDates(startDate, endDate);
     }
 
-    private void validateProblemName(String problemName) {
+    public void validateListParams(List<String> statuses, List<String> problemName, List<String> algorithm, List<String> metrics) {
+        statuses.forEach(this::validateStatus);
+        problemName.forEach(this::validateProblemName);
+        algorithm.forEach(this::validateAlgorithm);
+        if (!metrics.isEmpty())
+            validateMetrics(metrics);
+    }
+
+        private void validateProblemName(String problemName) {
         if (!allRegisteredProblems.contains(problemName)) {
             throw new IllegalArgumentException("Problem not found: " + problemName);
         }
@@ -76,6 +85,14 @@ public class ExperimentValidator {
 
         if (startDate.after(endDate)) {
             throw new IllegalArgumentException("Start date cannot be after end date.");
+        }
+    }
+
+    private void validateStatus(String experimentStatus) {
+        try {
+            StatusEnum.valueOf(experimentStatus);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unknown status specified: " + experimentStatus);
         }
     }
 }
