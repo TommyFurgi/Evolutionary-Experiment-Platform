@@ -1,7 +1,9 @@
 package CLI.command;
 
 import CLI.config.CliConfig;
+import CLI.handler.GlobalExceptionHandler;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -36,16 +38,14 @@ public class RunExperimentCommand implements Runnable {
                 problemName, algorithm, metrics, evaluationNumber, experimentIterationNumber);
         RestTemplate restTemplate = new RestTemplate();
 
-//        TODO: We don't have a case sensitivity validation. For instance: run uf1 and run UF1 are the same problems
-//         but have a different name in DB
         if (experimentIterationNumber == 1) {
             System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
                     problemName, algorithm, metrics, evaluationNumber);
             try {
                 String response = restTemplate.postForObject(urlExperiment, request, String.class);
                 System.out.println("Server response: " + response);
-            } catch (Exception e) {
-                System.err.println("Error while running experiment: " + e.getMessage());
+            } catch (HttpClientErrorException e) {
+                GlobalExceptionHandler.handleHttpClientError(e, "Error while running experiment: ");
             }
         } else if (experimentIterationNumber > 1) {
             System.out.printf("Preparing to run %d experiments:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
@@ -53,8 +53,8 @@ public class RunExperimentCommand implements Runnable {
             try {
                 String response = restTemplate.postForObject(urlExperiments, request, String.class);
                 System.out.println("Server response: " + response);
-            } catch (Exception e) {
-                System.err.println("Error while running experiments: " + e.getMessage());
+            } catch (HttpClientErrorException e) {
+                GlobalExceptionHandler.handleHttpClientError(e, "Error while running experiments: ");
             }
         }
     }

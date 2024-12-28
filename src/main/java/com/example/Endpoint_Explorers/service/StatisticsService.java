@@ -1,5 +1,9 @@
 package com.example.Endpoint_Explorers.service;
 
+import com.example.Endpoint_Explorers.component.ExecutorFactory;
+import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
+import com.example.Endpoint_Explorers.component.ExperimentValidator;
+import com.example.Endpoint_Explorers.component.StatisticsCalculator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.Metrics;
 import com.example.Endpoint_Explorers.model.StatEnum;
@@ -9,6 +13,7 @@ import com.example.Endpoint_Explorers.repository.MetricsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.xml.validation.Validator;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,13 +24,17 @@ import java.util.*;
 public class StatisticsService {
     private final ExperimentRepository experimentRepository;
     private final MetricsRepository metricsRepository;
+    private final StatisticsCalculator statisticsCalculator;
+    private final ExperimentValidator validator;
 
     public Map<String, List<Double>> getStatsTimeFromInterval(String problemName, String algorithm, String start, String end, String statType) {
-        StatEnum enumStatType = extractStatsType(statType);
+        StatEnum enumStatType = StatEnum.extractStatsType(statType);
 
         Timestamp[] timestamps = parseTimestamps(start, end);
         Timestamp startDate = timestamps[0];
         Timestamp endDate = timestamps[1];
+
+        validator.validateStatsParams(problemName, algorithm, startDate, endDate);
 
         List<Experiment> experiments = extractExperiments(algorithm, problemName, startDate, endDate);
 
@@ -33,19 +42,11 @@ public class StatisticsService {
 
         List<Metrics> metricsList = getMetricsList(experiments, maxPossibleEvaluation);
 
-        int maxIteration = maxPossibleEvaluation / 100;
+        int maxIteration = maxPossibleEvaluation / ExperimentObservableFactory.getFrequency();
 
         Map<String, List<List<Float>>> metricsMap = createMetricsMap(metricsList, maxIteration);
-        return createResultMetricsMap(metricsMap, maxIteration, enumStatType);
-    }
 
-    private StatEnum extractStatsType(String statType) {
-        try {
-            return StatEnum.valueOf(statType.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Incorrect statistics type: " + statType
-                    + " Choose one of the following: " + Arrays.toString(StatEnum.values()));
-        }
+        return createResultMetricsMap(metricsMap, maxIteration, enumStatType);
     }
 
     private Timestamp[] parseTimestamps(String start, String end) {
@@ -63,7 +64,7 @@ public class StatisticsService {
 
     private List<Experiment> extractExperiments(String algorithm, String problemName, Timestamp startDate, Timestamp endDate) {
         List<Experiment> experiments = experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
-                algorithm, problemName, StatusEnum.COMPLETED, startDate, endDate);
+                algorithm.toLowerCase(), problemName.toLowerCase(), StatusEnum.COMPLETED, startDate, endDate);
 
         if (experiments.isEmpty()) {
             throw new IllegalArgumentException("No experiments found in the specified time interval.");
@@ -118,43 +119,9 @@ public class StatisticsService {
         for (String metricsName : metricsMap.keySet()) {
             for (int i = 0; i < maxIteration; i++) {
                 resultMetricsMap.computeIfAbsent(metricsName, k -> new ArrayList<>())
-                        .add(calculateStat(metricsMap.get(metricsName).get(i), enumStatType));
+                        .add(statisticsCalculator.calculateStat(metricsMap.get(metricsName).get(i), enumStatType));
             }
         }
         return resultMetricsMap;
     }
-
-    private double calculateStat(List<Float> values, StatEnum statType) {
-        return switch (statType) {
-            case AVG -> calculateAverage(values);
-            case MEDIAN -> calculateMedian(values);
-            case STD_DEV -> {
-                double mean = calculateAverage(values);
-                yield calculateStandardDeviation(values, mean);
-            }
-        };
-    }
-
-    private double calculateAverage(List<Float> values) {
-        return values.stream().mapToDouble(Float::floatValue).average().orElse(0.0);
-    }
-
-    private double calculateMedian(List<Float> values) {
-        List<Float> sorted = values.stream().sorted().toList();
-        int size = sorted.size();
-        if (size % 2 == 0) {
-            return (sorted.get(size / 2 - 1) + sorted.get(size / 2)) / 2.0;
-        } else {
-            return sorted.get(size / 2);
-        }
-    }
-
-    private double calculateStandardDeviation(List<Float> values, double mean) {
-        double variance = values.stream()
-                .mapToDouble(value -> Math.pow(value - mean, 2))
-                .average()
-                .orElse(0.0);
-        return Math.sqrt(variance);
-    }
 }
-
