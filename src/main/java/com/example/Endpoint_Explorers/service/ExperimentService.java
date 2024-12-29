@@ -5,7 +5,9 @@ import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
+import com.example.Endpoint_Explorers.request.MultiExperimentRequest;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 
@@ -28,30 +31,30 @@ public class ExperimentService {
     private final ExperimentValidator validator;
 
 
-    public List<Integer> runExperiments(RunExperimentRequest request) {
-        int n = request.getExperimentIterationNumber();
-        List<Integer> experimentIds = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            try {
-                experimentIds.add(runExperiment(request));
-            } catch (Exception e) {
-                log.error("Something failed for one of experiments. List of created experiments without an error: {}", experimentIds);
-                throw e;
+    public void runExperiments(RunExperimentRequest request) {
+        Observable<List<Integer>> observable = Observable.fromCallable(() -> {
+            List<Integer> experimentIds = new ArrayList<>();
+            for (int i = 0; i < request.getExperimentIterationNumber(); i++) {
+                try {
+                    int expId = runExperiment(request);
+                    experimentIds.add(expId);
+                } catch (Exception e) {
+                    log.error("Something failed for one of the experiments. List of created experiments without an error: {}", experimentIds, e);
+                    throw e;
+                }
             }
-        }
-        return experimentIds;
-    }
+            return experimentIds;
+        });
 
+        observable
+                .subscribeOn(Schedulers.computation())
+                .subscribe(
+                        result -> log.info("All experiments completed successfully. Experiment IDs: {}", result),
+                        error -> log.error("Error occurred while running experiments: ", error)
+                );
+    }
     @Transactional
     public int runExperiment(RunExperimentRequest request) {
-        validator.validateExperimentParams(
-                request.getProblemName(),
-                request.getAlgorithm(),
-                request.getMetrics(),
-                request.getEvaluationNumber(),
-                request.getExperimentIterationNumber()
-        );
-
         Experiment experiment = initializeExperiment(request);
         log.info("Running experiment with request: {}", request);
 
@@ -68,6 +71,34 @@ public class ExperimentService {
             log.error("Transaction failed for experiment: {}", experiment.getId(), e);
             throw e;
         }
+    }
+    public void runMultiExperiments(MultiExperimentRequest request) {
+        Observable<List<Integer>> observable = Observable.fromCallable(() -> {
+            List<Integer> experimentIds = new ArrayList<>();
+            for (String problem : request.getProblems()) {
+                for (String algorithm : request.getAlgorithms()) {
+                    for (int i = 0; i < request.getExperimentIterationNumber(); i++) {
+                        RunExperimentRequest singleReq = new RunExperimentRequest(
+                                problem,
+                                algorithm,
+                                request.getMetrics(),
+                                request.getEvaluationNumber(),
+                                request.getExperimentIterationNumber()
+                        );
+                        int expId = runExperiment(singleReq);
+                        experimentIds.add(expId);
+                    }
+                }
+            }
+            return experimentIds;
+        });
+
+        observable
+                .subscribeOn(Schedulers.computation())
+                .subscribe(
+                        result -> log.info("Experiments finished. IDs = {}", result),
+                        error -> log.error("Some error occurred: ", error)
+                );
     }
 
     private void handleSuccess(Experiment experiment, Observations result, RunExperimentRequest request) {
@@ -102,7 +133,7 @@ public class ExperimentService {
 
         Experiment savedExperiment = repository.save(experiment);
         log.info("Experiment with id {} saved successfully: {}", savedExperiment.getId(), experiment);
-        return experiment;
+        return savedExperiment;
     }
 
     public Optional<Experiment> getExperimentById(int id) {

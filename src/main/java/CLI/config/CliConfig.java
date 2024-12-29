@@ -13,7 +13,7 @@ public class CliConfig {
     private final String checkStatusUrl = "http://localhost:8080/experiments/ready";
     private final String experimentListUrl = "http://localhost:8080/experiment-list";
     private final String statsUrl = "http://localhost:8080/stats";
-
+    private final String runMultiExperimentsUrl = "http://localhost:8080/experiments/multi";
     private CliConfig() {
     }
 }

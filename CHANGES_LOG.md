@@ -50,3 +50,13 @@
 - dodanie obsługi błędów przy pobieraniu statystyk
 - poprawa obsługi błędów w cli
 - dodanie możliwości listowania eksperymentów po algorytmach, nazwie problemu oraz po metrykach
+
+29.12.2024
+- stworzenie nowego requesta ktory przyjmuje liste algorytmow i problemow
+- dodanie nowej komendy runMulti która moze odpalic ekseprymenty z rożnymi problemami i algorytmami
+- dodanie metody walidujacej requesty
+- od teraz walidujemy request i na etapie zlego requesta rzucamy blad
+- runExperiments, nie dzialala asynchronicznie - teraz mozna odpalic z -n bardzo duzym i endpoint nie jest blokowany
+- dodanie testow jednostkowych do serwisów
+- dodatenie testow jednostkowych do ExperimentValidator'a
+- update readme
