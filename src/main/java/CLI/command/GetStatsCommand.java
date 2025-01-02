@@ -27,15 +27,15 @@ public class GetStatsCommand implements Runnable {
     @CommandLine.Parameters(index = "1", description = "Calculate stats for the given algorithm")
     private String algorithm;
 
-    @CommandLine.Parameters(
-            index = "2",
+    @CommandLine.Option(
+            names = {"-s", "--start"},
             description = "Start Date and Time in yyyy-MM-dd HH:mm format (default: 2024-01-01 00:00:00)",
-            defaultValue = "2024-01-01 00:00:00"
+            defaultValue = "2024-01-01_00:00:00"
     )
     private String startDateTime;
 
-    @CommandLine.Parameters(
-            index = "3",
+    @CommandLine.Option(
+            names = {"-e", "--end"},
             description = "End Date and Time in yyyy-MM-dd HH:mm format (default: Current Time)",
             defaultValue = ""
     )
@@ -46,7 +46,7 @@ public class GetStatsCommand implements Runnable {
 
     @Override
     public void run() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
         LocalDateTime start;
         LocalDateTime end;
 
@@ -57,6 +57,8 @@ public class GetStatsCommand implements Runnable {
             } else {
                 end = LocalDateTime.parse(endDateTime, formatter);
             }
+            System.out.println(start);
+            System.out.println(end);
         } catch (DateTimeParseException e) {
             System.err.println("Error: Dates must be in 'yyyy-MM-dd HH:mm' format.");
             return;

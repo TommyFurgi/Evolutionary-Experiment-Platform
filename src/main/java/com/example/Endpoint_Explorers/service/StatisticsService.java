@@ -50,7 +50,7 @@ public class StatisticsService {
     }
 
     private Timestamp[] parseTimestamps(String start, String end) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
 
         LocalDateTime startLocal = LocalDateTime.parse(start, formatter);
         LocalDateTime endLocal = LocalDateTime.parse(end, formatter);

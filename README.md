@@ -314,7 +314,8 @@ get <experimentId>
 
 #### Usage
 ```bash
-getStats <problemName> <algorithm> [startDateTime] [endDateTime] [options]
+getStats <problemName> <algorithm> [options]
+[options]
 ```
 
 #### Parameters
@@ -324,19 +325,32 @@ Example: UF1
 `<algorithm>`: The algorithm used for solving the problem.
 Example: NSGA-II
 
-`[startDateTime]`: The start date and time in yyyy-MM-dd HH:mm format (default: 2024-01-01 00:00:00).
-Example: 2024-01-01 00:00
-
-`[endDateTime]`: The end date and time in yyyy-MM-dd HH:mm format (default: current time).
-Example: 2024-12-31 23:59
 
 #### Options
-`-a, --statType <type>`
-The type of statistics to calculate. Supported types include median, average ( **avg** ), and standard deviation (**std_dev**). (default: **median**)
-Example: --statType avg
---statType median
---statType std_dev
+`-s, --start <startDateTime>`
+Start of the time interval
+Format: yyyy-MM-dd_HH:mm:ss
+Default: 2024-01-01_00:00:00
 
+Example
+--start 2024-01-01_00:00:00
+
+`-e, --end <endDateTime>`
+End of the time interval
+
+Format: yyyy-MM-dd_HH:mm:ss
+Default (if not provided): current time and date
+
+Example:
+--end 2024-01-02_17:20:00
+
+`-a, --statType <type>`
+Statistics type
+Available options: `median, avg, std_dev`.
+Default: median.
+
+Example:
+`--statType avg`
 
 ---
 ### `list` command
@@ -461,7 +475,7 @@ run DTLZ2 GDE3 -m generational-distance -e 10000
 **You can pass multiple metrics separated by spaces:**
 
 ```bash
-run WFG8 e-NSGA-II -m spacing archive-size population-size additive-epsilon-indicator
+run WFG8 e-NSGA-II -m spacing population-size additive-epsilon-indicator
 ```
 
 **To try something heavy, you can run the same experiment multiple times. For example, run the following command 8 times:**
@@ -481,6 +495,27 @@ run UF1 e-MOEA -n 10
 ```bash
 runMulti -p UF1 DTLZ2 -a e-MOEA NSGA-II -e 5000 -n 3
 ```
+
+**You can check the statistics of completed experiments:**
+```bash
+getStats UF1 e-MOEA
+```
+
+```bash
+getStats UF1 e-MOEA -a std_dev
+```
+
+**To specify a start date for the included experiments: (default 2024-01-01_00:00:00)**
+
+```bash
+getStats UF1 e-MOEA -a std_dev --start 2025-01-01_12:00:00
+```
+**You can also specify an end date (by default, it's set to the current date and time):**
+
+```bash
+getStats UF1 e-MOEA -a std_dev --start 2025-01-01_12:00:00 --end 2026-01-01_12:00:00
+```
+
 
 **Now try to see that they are running in the background - list the status of all experiments, use the list command:**
 
