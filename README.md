@@ -13,13 +13,16 @@ We are able to run experiments with specific problem names, algorithms, metrics 
 2. [Model](#model)
 3. [API Endpoints](#api-endpoints)
     - [Run Experiment](#run-experiment)
+    - [Run Multiple Experiments](#run-multiple-experiments)
     - [Get Experiment By ID](#get-experiment-by-id)
     - [Get Ready Experiments](#get-ready-experiments)
-    - [Get Experiments By Status](#get-experiments-by-status)
+    - [Get Experiments  by various parameters](#get-experiments-by-filters)
 
 4. [Cli Commands](#cli-commands)
     - [`run`](#run-command)
+    - [`runMulti`](#runMulti-command)
     - [`get`](#get-command)
+    - [`getStats`](#getStats-command)
     - [`list`](#list-command)
     - [`exit`](#exit-command)
     - [`help`](#help-command)
@@ -88,20 +91,87 @@ If there is an experiment with status **READY**, the CLI is informed, and the st
 ## API Endpoints
 
 ### Run Experiment
-- **URL**: `/experiment`
+- **URL**: `/experiments`
 - **Method**: `POST`
 - **Description**: Starts a new experiment based on the provided configuration.
-- **Request Body**: 
-  - Valid `RunExperimentRequest` object containing:
-    - `problemName` (String): Name of the problem to solve.
-    - `algorithm` (String): Algorithm to use for solving the problem.
-    - `numberOfEvaluations` (Integer): Number of evaluations for the experiment.
+
+#### Request Body:
+The endpoint accepts a JSON object that must match the `RunExperimentRequest` structure. The fields are described below:
+
+- **`problemName`** (String): The name of the problem to solve.  
+  **Constraints**:  
+  - Cannot be blank.
+
+- **`algorithm`** (String): The algorithm to use for solving the problem.  
+  **Constraints**:  
+  - Cannot be blank.
+
+- **`metrics`** (List of Strings): A list of metrics to evaluate during the experiment.  
+  **Constraints**:  
+  - Must include at least one metric.  
+  **Example**: `["contribution", "spacing"]`
+
+- **`evaluationNumber`** (Integer): The number of evaluations for the experiment.  
+  **Constraints**:  
+  - Must be greater than 0.  
+
+- **`experimentIterationNumber`** (Integer): The number of iterations for the experiment.  
+  **Constraints**:  
+  - Must be greater than 0.  
+
+#### Example Request:
+```json
+{
+  "problemName": "UF1",
+  "algorithm": "NSGA-II",
+  "metrics": ["contribution", "spacing"],
+  "evaluationNumber": 1000,
+  "experimentIterationNumber": 1
+}
+```
 
 
 ---
 
+### Run Multiple Experiments
+- **URL**: `/experiments/multi`
+- **Method**: `POST`
+- **Description**: Triggers multiple experiments for combinations of problems and algorithms. Each experiment is executed based on the parameters provided.
+
+#### Request Body:
+The endpoint accepts a JSON object with the following required fields:
+
+- **`problems`** (List of Strings): A list of problems to solve.  
+  **Example**: `["UF1", "DTLZ2"]`
+
+- **`algorithms`** (List of Strings): A list of algorithms to apply for solving the problems.  
+  **Example**: `["NSGA-II", "GDE3"]`
+
+- **`metrics`** (List of Strings): A list of metrics to evaluate during the experiments.  
+  **Example**: `["contribution", "spacing"]`
+
+- **`evaluationNumber`** (Integer): The number of evaluations to perform for each experiment.  
+  **Minimum Value**: `1`  
+  **Default**: No default; must be explicitly provided.
+
+- **`experimentIterationNumber`** (Integer): The number of iterations for each experiment.  
+  **Minimum Value**: `1`  
+  **Default**: No default; must be explicitly provided.
+
+#### Example Request:
+```json
+{
+  "problems": ["UF1", "DTLZ2"],
+  "algorithms": ["NSGA-II", "GDE3"],
+  "metrics": ["enlapsed-time", "spacing"],
+  "evaluationNumber": 1000,
+  "experimentIterationNumber": 2
+}
+```
+---
+
 ### Get Experiment By ID
-- **URL**: `/experiment/{id}`
+- **URL**: `/experiments/{id}`
 - **Method**: `GET`
 - **Description**: Fetches details of a specific experiment by its ID.
 - **Path Parameter**:
@@ -110,18 +180,44 @@ If there is an experiment with status **READY**, the CLI is informed, and the st
 ---
 
 ### Get Ready Experiments
-- **URL**: `/experiment/ready`
+- **URL**: `/experiments/ready`
 - **Method**: `GET`
 - **Description**: Retrieves a list of experiments that are marked as **READY** (completed computations, but not yet acknowledged by the CLI).
 
 ---
 
-### Get Experiments By Status
-- **URL**: `/experiment/list/{status}`
-- **Method**: `GET`
-- **Description**: Retrieves a list of experiments filtered by their status.
-- **Path Parameter**:
-  - `status` (String): The status of the experiments to filter by. Valid statuses include `IN_PROGRESS`, `READY`, `FAILED`, and `COMPLETED`.
+### Get Experiments By Filters
+- **URL**: `/experiment-list`
+- **Method**: `POST`
+- **Description**: Retrieves a list of experiments filtered by various criteria, including status, problem name, algorithm, and metrics.
+
+#### Request Body:
+The endpoint accepts a JSON object with the following optional keys:
+
+- **`statuses`** (List of Strings): Filter experiments by their statuses. Valid statuses include:
+  - `IN_PROGRESS`
+  - `READY`
+  - `FAILED`
+  - `COMPLETED`
+
+- **`problems`** (List of Strings): Filter experiments by their problem names.  
+  **Example**: `["UF1", "DTLZ2"]`
+
+- **`algorithms`** (List of Strings): Filter experiments by the algorithms used.  
+  **Example**: `["NSGA-II", "GDE3"]`
+
+- **`metrics`** (List of Strings): Filter experiments by the metrics computed.  
+  **Example**: `["elapsed-time", "spacing"]`
+
+#### Example Request:
+```json
+{
+  "statuses": ["READY", "COMPLETED"],
+  "problems": ["UF1"],
+  "algorithms": ["NSGA-II"],
+  "metrics": ["spacing"]
+}
+```
 
 ---
 
@@ -130,12 +226,60 @@ If there is an experiment with status **READY**, the CLI is informed, and the st
 ## Cli Commands
 
 ### `run` command
-**Description**: Run an experiment on the server.
+**Description**: Run an experiment or multiple iterations of an experiment on the server.
 
 #### Usage
 ```bash
 run <problemName> <algorithm> [options]
 ```
+
+#### Parameters
+`<problemName>`: The name of the problem to solve.
+`<algorithm>`: The algorithm to use for solving the problem.
+
+##### Options
+`-m, --metrics <metric1> <metric2> ...`: A list of metrics to evaluate. Defaults to all if not specified. Example: -m hypervolume spacing
+
+`-e, --evaluations <number>`: The number of evaluations to perform. Defaults to 1000. Example: -e 5000
+
+`-n, --experimentIterationNumber <number>`: The number of iterations for the experiment. Defaults to 1. Example: -n 10
+
+
+---
+
+
+### `runMulti` command
+**Description**: Run multiple experiments on the server, each defined by a list of problems and a list of algorithms. You can also specify metrics, number of evaluations, and how many times to repeat each experiment.
+
+#### Usage
+```bash
+runMulti [options]
+```
+
+#### Required Options
+`-p, --problems <problem1> <problem2> ...`
+
+The list of problem names to solve (at least one).
+Example: -p UF1 DTLZ2
+
+`-a, --algorithms <algorithm1> <algorithm2> ...`
+
+The list of algorithms to use (at least one).
+Example: -a e-MOEA NSGA-II
+
+#### Optional Options
+`-m, --metrics <metric1> <metric2> ...`
+The list of metrics to evaluate for each experiment (default: all).
+Example: -m hypervolume spacing
+
+`-e, --evaluations <number>`
+The number of evaluations to perform in each experiment (default: 1000).
+Example: -e 5000
+
+`-n, --experimentIterationNumber <number>`
+How many times each (problem, algorithm) pair should be repeated (default: 1).
+Example: -n 3
+
 
 #### Parameters
 
@@ -165,25 +309,73 @@ get <experimentId>
 ---
 
 
-### `list` command
-**Description**: Retrieve information about experiments filtered by their status.
+### `getStats` command
+**Description**: Fetch experiment statistics from the server for a given problem, algorithm, and time interval. The statistics can include metrics like `median`, `average`, etc., calculated over the specified interval.
 
 #### Usage
 ```bash
-list [experimentStatus]
+getStats <problemName> <algorithm> [options]
+[options]
 ```
-We can also list all experiments info
 
-```bash
-list all 
-```
 #### Parameters
+`<problemName>`: The name of the problem for which stats are being calculated.
+Example: UF1
 
-- `[experimentStatus]`: the status of the experiments to filter by. Defaults to all if not specified. Valid statuses include:
-**IN_PROGRESS**
-**READY**
-**FAILED**
-**COMPLETED**
+`<algorithm>`: The algorithm used for solving the problem.
+Example: NSGA-II
+
+
+#### Options
+`-s, --start <startDateTime>`
+Start of the time interval
+Format: yyyy-MM-dd_HH:mm:ss
+Default: 2024-01-01_00:00:00
+
+Example
+--start 2024-01-01_00:00:00
+
+`-e, --end <endDateTime>`
+End of the time interval
+
+Format: yyyy-MM-dd_HH:mm:ss
+Default (if not provided): current time and date
+
+Example:
+--end 2024-01-02_17:20:00
+
+`-a, --statType <type>`
+Statistics type
+Available options: `median, avg, std_dev`.
+Default: median.
+
+Example:
+`--statType avg`
+
+---
+### `list` command
+**Description**: Retrieve information about experiments filtered by various parameters such as status, problem name, algorithm, or metrics.
+
+
+#### Usage
+```bash
+list [options]
+```
+#### Options
+`-s, --status <status1> <status2> ...`: Filter experiments by their status. Valid statuses include:
+IN_PROGRESS, READY, FAILED, COMPLETED
+
+Defaults to all statuses if not specified.
+`-p, --problem <problem1> <problem2> ...`: Filter experiments by their problem name(s).
+Example: --problem UF1 DTLZ2
+
+`-a, --algorithm <algorithm1> <algorithm2> ...`: Filter experiments by their algorithm(s).
+Example: --algorithm NSGA-II GDE3
+
+`-m, --metrics <metric1> <metric2> ...`: Filter experiments by their metrics.
+Example: --metrics spacing
+
+
 
 ---
 
@@ -283,7 +475,7 @@ run DTLZ2 GDE3 -m generational-distance -e 10000
 **You can pass multiple metrics separated by spaces:**
 
 ```bash
-run WFG8 e-NSGA-II -m spacing archive-size population-size additive-epsilon-indicator
+run WFG8 e-NSGA-II -m spacing population-size additive-epsilon-indicator
 ```
 
 **To try something heavy, you can run the same experiment multiple times. For example, run the following command 8 times:**
@@ -291,17 +483,66 @@ run WFG8 e-NSGA-II -m spacing archive-size population-size additive-epsilon-indi
 ```bash
 run UF1 e-MOEA -e 20000
 ```
+**You can also specify the number of instances for the experiment by adding the `-n {number of instances}` option.**
+
+```bash
+run UF1 e-MOEA -n 10
+```
+**Examples for the runMulti Command:**
+
+**Run multiple experiments with multiple problems and algorithms:**
+
+```bash
+runMulti -p UF1 DTLZ2 -a e-MOEA NSGA-II -e 5000 -n 3
+```
+
+**You can check the statistics of completed experiments:**
+```bash
+getStats UF1 e-MOEA
+```
+
+```bash
+getStats UF1 e-MOEA -a std_dev
+```
+
+**To specify a start date for the included experiments: (default 2024-01-01_00:00:00)**
+
+```bash
+getStats UF1 e-MOEA -a std_dev --start 2025-01-01_12:00:00
+```
+**You can also specify an end date (by default, it's set to the current date and time):**
+
+```bash
+getStats UF1 e-MOEA -a std_dev --start 2025-01-01_12:00:00 --end 2026-01-01_12:00:00
+```
+
 
 **Now try to see that they are running in the background - list the status of all experiments, use the list command:**
 
 ```bash 
 list
 ```
-**To filter experiments by a specific status, such as IN_PROGRESS or COMPLETED, use the status as an argument:**
+**Filter experiments by their statuses (e.g., READY and COMPLETED):**
 
 ```bash 
-list IN_PROGRESS
-list COMPLETED
+list -s READY COMPLETED
+```
+
+**Filter experiments by specific problems and algorithms:**
+
+```bash
+list -p UF1 DTLZ2 -a NSGA-II e-MOEA
+```
+
+**Retrieve experiments with specific metrics:**
+
+```bash
+list -m spacing contribution elapsed-time
+```
+**You can combine all**
+
+```bash
+list -s COMPLETED -p UF1 -a NSGA-II -m spacing
 ```
 
 

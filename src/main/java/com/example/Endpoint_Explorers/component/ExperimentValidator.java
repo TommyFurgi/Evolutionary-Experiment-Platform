@@ -2,6 +2,8 @@ package com.example.Endpoint_Explorers.component;
 
 import com.example.Endpoint_Explorers.model.MetricTypeEnum;
 import com.example.Endpoint_Explorers.model.StatusEnum;
+import com.example.Endpoint_Explorers.request.MultiExperimentRequest;
+import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.core.spi.AlgorithmFactory;
 import org.moeaframework.core.spi.ProblemFactory;
@@ -24,6 +26,41 @@ public class ExperimentValidator {
         validateEvaluationNumber(evaluationNumber);
         validateIterationNumber(iterationNumber);
     }
+
+    public void validateExperimentRequest(RunExperimentRequest request){
+        this.validateExperimentParams(
+                request.getProblemName(),
+                request.getAlgorithm(),
+                request.getMetrics(),
+                request.getEvaluationNumber(),
+                request.getExperimentIterationNumber()
+        );
+    }
+
+    public void validateMultiExperimentRequest(MultiExperimentRequest request) {
+        if (request.getProblems() == null || request.getProblems().isEmpty()) {
+            throw new IllegalArgumentException("At least one problem is required.");
+        }
+        request.getProblems().forEach(this::validateProblemName);
+        if (request.getAlgorithms() == null || request.getAlgorithms().isEmpty()) {
+            throw new IllegalArgumentException("At least one algorithm is required.");
+        }
+        request.getAlgorithms().forEach(this::validateAlgorithm);
+
+        if (request.getMetrics() == null || request.getMetrics().isEmpty()) {
+            throw new IllegalArgumentException("At least one metric is required.");
+        }
+        validateMetrics(request.getMetrics());
+        if (request.getEvaluationNumber() == null || request.getEvaluationNumber() <= 0) {
+            throw new IllegalArgumentException("Evaluation number must be greater than 0.");
+        }
+        validateEvaluationNumber(request.getEvaluationNumber());
+        if (request.getExperimentIterationNumber() == null || request.getExperimentIterationNumber() <= 0) {
+            throw new IllegalArgumentException("Experiment iteration number must be greater than 0.");
+        }
+        validateIterationNumber(request.getExperimentIterationNumber());
+    }
+
 
     public void validateStatsParams(String problemName, String algorithm, Timestamp startDate, Timestamp endDate) {
         validateProblemName(problemName);
