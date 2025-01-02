@@ -47,8 +47,8 @@ class StatisticsServiceTest {
         // given
         String problemName = "UF1";
         String algorithm = "NSGA-II";
-        String startStr = "2024-01-01 00:00:00";
-        String endStr = "2024-12-31 23:59:59";
+        String startStr = "2024-01-01_00:00:00";
+        String endStr = "2024-12-31_23:59:59";
         String statType = "MEDIAN";
 
         Experiment exp1 = new Experiment();
@@ -130,8 +130,8 @@ class StatisticsServiceTest {
         // given
         String problemName = "UF1";
         String algorithm = "NSGA-II";
-        String startStr = "2024-01-01 00:00:00";
-        String endStr = "2024-12-31 23:59:59";
+        String startStr = "2024-01-01_00:00:00";
+        String endStr = "2024-12-31_23:59:59";
         String statType = "AVG";
 
         when(experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
@@ -150,8 +150,8 @@ class StatisticsServiceTest {
     void testGetStatsTimeFromInterval_statTypeStdDev() {
         String problemName = "DTLZ2";
         String algorithm = "GDE3";
-        String startStr = "2025-01-01 00:00:00";
-        String endStr = "2025-12-31 23:59:59";
+        String startStr = "2025-01-01_00:00:00";
+        String endStr = "2025-12-31_23:59:59";
         String statType = "STD_DEV";
 
         Experiment exp = new Experiment();
@@ -198,14 +198,14 @@ class StatisticsServiceTest {
 
         assertThrows(IllegalArgumentException.class, () ->
                 statisticsService.getStatsTimeFromInterval("UF1", "e-MOEA",
-                        "2024-01-01 00:00:00", "2024-12-31 23:59:59", "AVG")
+                        "2024-01-01_00:00:00", "2024-12-31_23:59:59", "AVG")
         );
     }
 
     @Test
     void testGetStatsTimeFromInterval_parseTimestamps() {
-        String startStr = "2024-01-01 12:34:56";
-        String endStr = "2024-01-02 01:02:03";
+        String startStr = "2024-01-01_12:34:56";
+        String endStr = "2024-01-02_01:02:03";
 
         // musimy zwrócić cokolwiek, żeby nie rzuciło noExperiments
         Experiment dummyExp = new Experiment();
