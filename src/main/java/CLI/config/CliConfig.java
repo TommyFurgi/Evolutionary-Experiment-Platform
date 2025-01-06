@@ -1,19 +1,21 @@
 package CLI.config;
 
-import lombok.Getter;
-
-@Getter
 public class CliConfig {
-    @Getter
-    private static final CliConfig instance = new CliConfig();
-    private final String baseUrl = "http://localhost:8080/";
-    private final String runExperimentUrl = "http://localhost:8080/experiments";
-    private final String runExperimentsUrl = "http://localhost:8080/experiments/many";
-    private final String getExperimentUrl = "http://localhost:8080/experiments/";
-    private final String checkStatusUrl = "http://localhost:8080/experiments/ready";
-    private final String experimentListUrl = "http://localhost:8080/experiment-list";
-    private final String statsUrl = "http://localhost:8080/stats";
-    private final String runMultiExperimentsUrl = "http://localhost:8080/experiments/multi";
+    private static final CliConfig INSTANCE = new CliConfig();
+
+    public static final String BASE_URL = "http://localhost:8080/";
+    public static final String RUN_EXPERIMENT_URL = "http://localhost:8080/experiments";
+    public static final String RUN_EXPERIMENTS_URL = "http://localhost:8080/experiments/many";
+    public static final String GET_EXPERIMENT_URL = "http://localhost:8080/experiments/";
+    public static final String CHECK_STATUS_URL = "http://localhost:8080/experiments/ready";
+    public static final String EXPERIMENT_LIST_URL = "http://localhost:8080/experiment-list";
+    public static final String STATS_URL = "http://localhost:8080/stats";
+    public static final String RUN_MULTI_EXPERIMENTS_URL = "http://localhost:8080/experiments/multi";
+
     private CliConfig() {
+    }
+
+    public static CliConfig getInstance() {
+        return INSTANCE;
     }
 }

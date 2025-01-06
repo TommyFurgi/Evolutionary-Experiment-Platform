@@ -30,11 +30,10 @@ class MetricsServiceTest {
     private MetricsService metricsService;
 
     @BeforeEach
-    void setUp() {
-    }
+    void setUp() {}
 
     @Test
-    void testSaveMetrics() {
+    void saveMetrics() {
         // given
         String metricsName = "HYPERVOLUME";
         Experiment experiment = new Experiment();
@@ -57,7 +56,7 @@ class MetricsServiceTest {
     }
 
     @Test
-    void testProcessMetricsNames_all() {
+    void processMetricsNames_all() {
         // given
         Observations observations = mock(Observations.class);
         RunExperimentRequest request = mock(RunExperimentRequest.class);
@@ -81,7 +80,7 @@ class MetricsServiceTest {
     }
 
     @Test
-    void testProcessMetricsNames_custom() {
+    void processMetricsNames_custom() {
         // given
         Observations observations = mock(Observations.class);
         RunExperimentRequest request = mock(RunExperimentRequest.class);
@@ -101,7 +100,7 @@ class MetricsServiceTest {
     }
 
     @Test
-    void testSaveAllMetrics() {
+    void saveAllMetrics() {
         // given
         Observations observations = mock(Observations.class);
         Observation obs1 = mock(Observation.class);

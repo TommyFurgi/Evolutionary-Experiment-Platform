@@ -7,7 +7,7 @@ import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.request.MultiExperimentRequest;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 
@@ -32,7 +31,7 @@ public class ExperimentService {
 
 
     public void runExperiments(RunExperimentRequest request) {
-        Observable<List<Integer>> observable = Observable.fromCallable(() -> {
+        Completable completable = Completable.fromCallable(() -> {
             List<Integer> experimentIds = new ArrayList<>();
             for (int i = 0; i < request.getExperimentIterationNumber(); i++) {
                 try {
@@ -46,12 +45,11 @@ public class ExperimentService {
             return experimentIds;
         });
 
-        observable
+        completable
                 .subscribeOn(Schedulers.computation())
-                .subscribe(
-                        result -> log.info("All experiments completed successfully. Experiment IDs: {}", result),
-                        error -> log.error("Error occurred while running experiments: ", error)
-                );
+                .doOnComplete(() -> log.info("All experiments completed successfully."))
+                .doOnError(error -> log.error("Error occurred while running experiments: ", error))
+                .subscribe();
     }
     @Transactional
     public int runExperiment(RunExperimentRequest request) {
@@ -72,8 +70,9 @@ public class ExperimentService {
             throw e;
         }
     }
+
     public void runMultiExperiments(MultiExperimentRequest request) {
-        Observable<List<Integer>> observable = Observable.fromCallable(() -> {
+        Completable completable = Completable.fromCallable(() -> {
             List<Integer> experimentIds = new ArrayList<>();
             for (String problem : request.getProblems()) {
                 for (String algorithm : request.getAlgorithms()) {
@@ -93,12 +92,11 @@ public class ExperimentService {
             return experimentIds;
         });
 
-        observable
+        completable
                 .subscribeOn(Schedulers.computation())
-                .subscribe(
-                        result -> log.info("Experiments finished. IDs = {}", result),
-                        error -> log.error("Some error occurred: ", error)
-                );
+                .doOnComplete(() -> log.info("All experiments completed successfully."))
+                .doOnError(error -> log.error("Error occurred while running experiments: ", error))
+                .subscribe();
     }
 
     private void handleSuccess(Experiment experiment, Observations result, RunExperimentRequest request) {
@@ -159,11 +157,14 @@ public class ExperimentService {
 
     public List<Experiment> getFilteredExperiments(List<String> statuses, List<String> problems, List<String> algorithms, List<String> metrics) {
         validator.validateListParams(statuses, problems, algorithms, metrics);
+        List<String> parsedMetrics = metrics.stream()
+                .map(metricsService::parseMetricsName)
+                .collect(Collectors.toList());
 
         Set<String> filteredStatuses = (statuses.isEmpty() || statuses.get(0).isEmpty()) ? null : new HashSet<>(statuses);
         Set<String> filteredProblems = convertListToLowerCaseSet(problems);
         Set<String> filteredAlgorithms = convertListToLowerCaseSet(algorithms);
-        Set<String> filteredMetrics = convertListToLowerCaseSet(metrics);
+        Set<String> filteredMetrics = convertListToLowerCaseSet(parsedMetrics);
 
         return repository.findFilteredExperiments(filteredStatuses, filteredProblems, filteredAlgorithms, filteredMetrics);
     }

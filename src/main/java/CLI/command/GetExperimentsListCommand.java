@@ -1,6 +1,7 @@
 package CLI.command;
 
 import CLI.config.CliConfig;
+import CLI.config.CliDefaults;
 import CLI.experiment.DataPrinter;
 import CLI.experiment.Experiment;
 import CLI.experiment.ExperimentMapper;
@@ -21,38 +22,27 @@ import java.util.Map;
 
 @CommandLine.Command(name = "list", description = "Get list of experiments")
 public class GetExperimentsListCommand implements Runnable {
-    @CommandLine.Option(names = {"-s", "--status"}, arity = "0..*", description = "Statuses of experiments", defaultValue = "")
+    @CommandLine.Option(names = {"-s", "--status"}, arity = "0..*", description = "Statuses of experiments", defaultValue = CliDefaults.DEFAULT_STATUS)
     private List<String> statuses;
 
-    @CommandLine.Option(names = {"-p", "--problem"}, arity = "0..*", description = "Problem's name of experiments", defaultValue = "")
+    @CommandLine.Option(names = {"-p", "--problem"}, arity = "0..*", description = "Problem's name of experiments", defaultValue = CliDefaults.DEFAULT_PROBLEM)
     private List<String> problems;
 
-    @CommandLine.Option(names = {"-a", "--algorithm"}, arity = "0..*", description = "Algorithms used in experiments", defaultValue = "")
+    @CommandLine.Option(names = {"-a", "--algorithm"}, arity = "0..*", description = "Algorithms used in experiments", defaultValue = CliDefaults.DEFAULT_ALGORITHM)
     private List<String> algorithms;
 
-    @CommandLine.Option(names = {"-m", "--metrics"}, arity = "0..*", description = "Metrics of experiments", defaultValue = "")
+    @CommandLine.Option(names = {"-m", "--metrics"}, arity = "0..*", description = "Metrics of experiments", defaultValue = CliDefaults.DEFAULT_METRIC_NONE)
     private List<String> metrics;
 
     @Override
     public void run() {
-        String baseUrl = CliConfig.getInstance().getExperimentListUrl();
+        String baseUrl = CliConfig.EXPERIMENT_LIST_URL;
 
         Map<String, Object> bodyMap = new HashMap<>();
-        if (statuses != null && !statuses.isEmpty() && !statuses.get(0).isEmpty()) {
-            bodyMap.put("statuses", statuses);
-        }
-
-        if (problems != null && !problems.isEmpty() && !problems.get(0).isEmpty()) {
-            bodyMap.put("problems", problems);
-        }
-
-        if (algorithms != null && !algorithms.isEmpty() && !algorithms.get(0).isEmpty()) {
-            bodyMap.put("algorithms", algorithms);
-        }
-
-        if (metrics != null && !metrics.isEmpty() && !metrics.get(0).isEmpty()) {
-            bodyMap.put("metrics", metrics);
-        }
+        addToMapIfNotDefault(bodyMap, "statuses", statuses, CliDefaults.DEFAULT_STATUS);
+        addToMapIfNotDefault(bodyMap, "problems", problems, CliDefaults.DEFAULT_PROBLEM);
+        addToMapIfNotDefault(bodyMap, "algorithms", algorithms, CliDefaults.DEFAULT_ALGORITHM);
+        addToMapIfNotDefault(bodyMap, "metrics", metrics, CliDefaults.DEFAULT_METRIC_NONE);
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -91,6 +81,12 @@ public class GetExperimentsListCommand implements Runnable {
             }
         } catch (Exception e) {
             System.err.println("Failed to parse available statuses from the response.");
+        }
+    }
+
+    private void addToMapIfNotDefault(Map<String, Object> bodyMap, String key, List<String> values, String defaultValue) {
+        if (values != null && !values.isEmpty() && !values.get(0).equals(defaultValue)) {
+            bodyMap.put(key, values);
         }
     }
 }

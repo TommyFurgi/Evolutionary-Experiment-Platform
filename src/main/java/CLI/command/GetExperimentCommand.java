@@ -4,6 +4,7 @@ import CLI.config.CliConfig;
 import CLI.experiment.Experiment;
 import CLI.experiment.ExperimentMapper;
 import CLI.experiment.DataPrinter;
+import CLI.experiment.ExperimentStatusEnum;
 import CLI.handler.GlobalExceptionHandler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -17,7 +18,7 @@ public class GetExperimentCommand implements Runnable {
 
     @Override
     public void run() {
-        String url = CliConfig.getInstance().getGetExperimentUrl() + experimentId;
+        String url = CliConfig.GET_EXPERIMENT_URL + experimentId;
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -25,8 +26,10 @@ public class GetExperimentCommand implements Runnable {
 
             Experiment experiment = ExperimentMapper.parseExperiment(response);
 
-            if (experiment.status().equals("COMPLETED"))
+            ExperimentStatusEnum statusEnum = ExperimentStatusEnum.valueOf(experiment.status());
+            if (statusEnum == ExperimentStatusEnum.COMPLETED) {
                 DataPrinter.displayTable(experiment);
+            }
 
         } catch (HttpClientErrorException e) {
             GlobalExceptionHandler.handleHttpClientError(e, "Error while getting experiment: Experiment with id: " + experimentId + " not found");

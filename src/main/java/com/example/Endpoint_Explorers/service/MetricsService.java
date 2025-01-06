@@ -48,8 +48,12 @@ public class MetricsService {
         for (Observation observation : result) {
             for (String metricsName : metricsNames) {
                 float value = ((Number) observation.get(metricsName)).floatValue();
-                saveMetrics(metricsName.replace(" ", "-"), experiment, observation.getNFE(), value);
+                saveMetrics(metricsName.replace(" ", ""), experiment, observation.getNFE(), value);
             }
         }
+    }
+
+    public String parseMetricsName(String metricsName) {
+        return metricsName.replace("-", "").replace(" ", "");
     }
 }

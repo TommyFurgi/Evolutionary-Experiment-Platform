@@ -1,6 +1,7 @@
 package CLI.command;
 
 import CLI.config.CliConfig;
+import CLI.config.CliDefaults;
 import CLI.handler.GlobalExceptionHandler;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import org.springframework.web.client.HttpClientErrorException;
@@ -20,19 +21,19 @@ public class RunExperimentCommand implements Runnable {
     @Parameters(index = "1", description = "Algorithm to use for solving the problem")
     private String algorithm;
 
-    @CommandLine.Option(names = {"-m", "--metrics"}, arity = "1..*", description = "List of metrics to evaluate", defaultValue = "all")
+    @CommandLine.Option(names = {"-m", "--metrics"}, arity = "1..*", description = "List of metrics to evaluate", defaultValue = CliDefaults.DEFAULT_METRIC_GENERAL)
     private List<String> metrics;
 
-    @CommandLine.Option(names = {"-e", "--evaluations"}, description = "Number of evaluations (default: 10000)", defaultValue = "1000")
+    @CommandLine.Option(names = {"-e", "--evaluations"}, description = "Number of evaluations (default: 10000)", defaultValue = CliDefaults.DEFAULT_EVALUATION_NUMBER)
     private Integer evaluationNumber;
 
-    @CommandLine.Option(names = {"-n", "--experimentIterationNumber"}, description = "Number of experiment iteration (default: 1)", defaultValue = "1")
+    @CommandLine.Option(names = {"-n", "--experimentIterationNumber"}, description = "Number of experiment iteration (default: 1)", defaultValue = CliDefaults.DEFAULT_EXPERIMENT_ITERATION_NUMBER)
     private Integer experimentIterationNumber;
 
     @Override
     public void run() {
-        String urlExperiment = CliConfig.getInstance().getRunExperimentUrl();
-        String urlExperiments = CliConfig.getInstance().getRunExperimentsUrl();
+        String urlExperiment = CliConfig.RUN_EXPERIMENT_URL;
+        String urlExperiments = CliConfig.RUN_EXPERIMENTS_URL;
 
         RunExperimentRequest request = new RunExperimentRequest(
                 problemName, algorithm, metrics, evaluationNumber, experimentIterationNumber);

@@ -43,7 +43,7 @@ class StatisticsServiceTest {
     }
 
     @Test
-    void testGetStatsTimeFromInterval_success() {
+    void getStatsTimeFromInterval_success() {
         // given
         String problemName = "UF1";
         String algorithm = "NSGA-II";
@@ -126,7 +126,7 @@ class StatisticsServiceTest {
     }
 
     @Test
-    void testGetStatsTimeFromInterval_noExperiments() {
+    void getStatsTimeFromInterval_noExperiments() {
         // given
         String problemName = "UF1";
         String algorithm = "NSGA-II";
@@ -147,7 +147,7 @@ class StatisticsServiceTest {
     }
 
     @Test
-    void testGetStatsTimeFromInterval_statTypeStdDev() {
+    void getStatsTimeFromInterval_statTypeStdDev() {
         String problemName = "DTLZ2";
         String algorithm = "GDE3";
         String startStr = "2025-01-01_00:00:00";
@@ -192,7 +192,7 @@ class StatisticsServiceTest {
     }
 
     @Test
-    void testGetStatsTimeFromInterval_validatorThrows() {
+    void getStatsTimeFromInterval_validatorThrows() {
         doThrow(new IllegalArgumentException("Wrong date interval"))
                 .when(validator).validateStatsParams(anyString(), anyString(), any(), any());
 
@@ -203,7 +203,7 @@ class StatisticsServiceTest {
     }
 
     @Test
-    void testGetStatsTimeFromInterval_parseTimestamps() {
+    void getStatsTimeFromInterval_parseTimestamps() {
         String startStr = "2024-01-01_12:34:56";
         String endStr = "2024-01-02_01:02:03";
 

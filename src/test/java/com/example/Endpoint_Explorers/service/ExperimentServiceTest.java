@@ -5,20 +5,15 @@ import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
-import com.example.Endpoint_Explorers.request.MultiExperimentRequest;
-import com.example.Endpoint_Explorers.request.RunExperimentRequest;
-import io.reactivex.rxjava3.core.Observable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.moeaframework.analysis.collector.Observations;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -39,7 +34,7 @@ class ExperimentServiceTest {
     ExperimentService experimentService;
 
     @Test
-    void testGetExperimentById_readyStatus() {
+    void getExperimentByIdReadyStatus() {
         // given
         Experiment readyExp = new Experiment();
         readyExp.setId(123);
@@ -58,10 +53,14 @@ class ExperimentServiceTest {
     }
 
     @Test
-    void testGetReadyExperiments() {
+    void getReadyExperiments() {
         // given
-        Experiment e1 = new Experiment(); e1.setId(1); e1.setStatus(StatusEnum.READY);
-        Experiment e2 = new Experiment(); e2.setId(2); e2.setStatus(StatusEnum.READY);
+        Experiment e1 = new Experiment();
+        e1.setId(1);
+        e1.setStatus(StatusEnum.READY);
+        Experiment e2 = new Experiment();
+        e2.setId(2);
+        e2.setStatus(StatusEnum.READY);
 
         when(repository.findByStatus(StatusEnum.READY)).thenReturn(List.of(e1, e2));
 
@@ -78,7 +77,7 @@ class ExperimentServiceTest {
     }
 
     @Test
-    void testGetFilteredExperiments() {
+    void getFilteredExperiments() {
         // given
         List<String> statuses = List.of("READY", "IN_PROGRESS");
         List<String> problems = List.of("UF1");
@@ -91,6 +90,7 @@ class ExperimentServiceTest {
         )).thenReturn(List.of());
 
         // when
+        when(metricsService.parseMetricsName("spacing")).thenReturn("spacing");  // Mocking to return "spacing"
         List<Experiment> result = experimentService.getFilteredExperiments(statuses, problems, algos, metrics);
 
         // then
@@ -105,6 +105,4 @@ class ExperimentServiceTest {
                 argThat(m -> m.contains("spacing"))
         );
     }
-
-
 }

@@ -22,6 +22,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class StatisticsService {
+    private record TimeRange(Timestamp start, Timestamp end) { }
     private final ExperimentRepository experimentRepository;
     private final MetricsRepository metricsRepository;
     private final StatisticsCalculator statisticsCalculator;
@@ -30,9 +31,9 @@ public class StatisticsService {
     public Map<String, List<Double>> getStatsTimeFromInterval(String problemName, String algorithm, String start, String end, String statType) {
         StatEnum enumStatType = StatEnum.extractStatsType(statType);
 
-        Timestamp[] timestamps = parseTimestamps(start, end);
-        Timestamp startDate = timestamps[0];
-        Timestamp endDate = timestamps[1];
+        TimeRange timestamps = parseTimestamps(start, end);
+        Timestamp startDate = timestamps.start;
+        Timestamp endDate = timestamps.end;
 
         validator.validateStatsParams(problemName, algorithm, startDate, endDate);
 
@@ -49,7 +50,7 @@ public class StatisticsService {
         return createResultMetricsMap(metricsMap, maxIteration, enumStatType);
     }
 
-    private Timestamp[] parseTimestamps(String start, String end) {
+    private TimeRange parseTimestamps(String start, String end) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
 
         LocalDateTime startLocal = LocalDateTime.parse(start, formatter);
@@ -59,7 +60,7 @@ public class StatisticsService {
         Timestamp endDate = Timestamp.valueOf(endLocal);
 
         System.out.println("Start Timestamp: " + startDate + ", End Timestamp: " + endDate);
-        return new Timestamp[]{startDate, endDate};
+        return new TimeRange(startDate, endDate);
     }
 
     private List<Experiment> extractExperiments(String algorithm, String problemName, Timestamp startDate, Timestamp endDate) {
@@ -99,7 +100,7 @@ public class StatisticsService {
             String metricsName = metrics.getMetricsName();
             int iterationNumber = (metrics.getIterationNumber() / 100) - 1;
             float value = metrics.getValue();
-            metricsMap.computeIfAbsent(metricsName, k -> {
+            metricsMap.computeIfAbsent(metricsName, values -> {
                 List<List<Float>> outerList = new ArrayList<>(maxIteration);
                 for (int i = 0; i < maxIteration; i++) {
                     outerList.add(new ArrayList<>());

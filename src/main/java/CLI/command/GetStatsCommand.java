@@ -1,6 +1,7 @@
 package CLI.command;
 
 import CLI.config.CliConfig;
+import CLI.config.CliDefaults;
 import CLI.experiment.DataPrinter;
 import CLI.handler.GlobalExceptionHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,18 +31,18 @@ public class GetStatsCommand implements Runnable {
     @CommandLine.Option(
             names = {"-s", "--start"},
             description = "Start Date and Time in yyyy-MM-dd HH:mm format (default: 2024-01-01 00:00:00)",
-            defaultValue = "2024-01-01_00:00:00"
+            defaultValue = CliDefaults.DEFAULT_START_DATE
     )
     private String startDateTime;
 
     @CommandLine.Option(
             names = {"-e", "--end"},
             description = "End Date and Time in yyyy-MM-dd HH:mm format (default: Current Time)",
-            defaultValue = ""
+            defaultValue = CliDefaults.DEFAULT_END_DATE
     )
     private String endDateTime;
 
-    @CommandLine.Option(names = {"-a", "--statType"}, description = "Type of Statistics measure (default: median)", defaultValue = "median")
+    @CommandLine.Option(names = {"-a", "--statType"}, description = "Type of Statistics measure (default: median)", defaultValue = CliDefaults.DEFAULT_STATISTIC_TYPE)
     private String statType;
 
     @Override
@@ -70,7 +71,7 @@ public class GetStatsCommand implements Runnable {
         }
 
         RestTemplate restTemplate = new RestTemplate();
-        String statsUrl = CliConfig.getInstance().getStatsUrl();
+        String statsUrl = CliConfig.STATS_URL;
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(statsUrl)
                 .queryParam("problemName", problemName)

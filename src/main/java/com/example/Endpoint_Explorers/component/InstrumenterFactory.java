@@ -12,10 +12,10 @@ import java.util.Optional;
 @Component
 public class InstrumenterFactory {
 
-    public Instrumenter createInstrumenter(RunExperimentRequest request, int FREQUENCY) {
+    public Instrumenter createInstrumenter(RunExperimentRequest request, int frequency) {
         Instrumenter instrumenter = new Instrumenter()
                 .withProblem(request.getProblemName())
-                .withFrequency(FREQUENCY);
+                .withFrequency(frequency);
 
         for (String metricName : request.getMetrics()) {
             Optional<MetricTypeEnum> metricOpt = MetricTypeEnum.fromString(metricName);

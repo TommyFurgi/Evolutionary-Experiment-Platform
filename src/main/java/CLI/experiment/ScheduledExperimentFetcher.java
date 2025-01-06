@@ -24,7 +24,7 @@ public class ScheduledExperimentFetcher {
 
     private void sendRequest() {
         try {
-            String Url = CliConfig.getInstance().getCheckStatusUrl();
+            String Url = CliConfig.CHECK_STATUS_URL;
             ResponseEntity<String> response = restTemplate.getForEntity(Url, String.class);
             handleResponse(response);
         } catch (Exception e) {

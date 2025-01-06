@@ -1,6 +1,5 @@
 package com.example.Endpoint_Explorers.component;
 
-import com.example.Endpoint_Explorers.model.StatusEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,13 +31,13 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateProblemName_ok() {
+    void validateProblemNameOk() {
         assertDoesNotThrow(() -> validator.validateExperimentParams("uf1", "nsga-ii",
                 List.of("spacing"), 1000, 1));
     }
 
     @Test
-    void testValidateProblemName_notFound() {
+    void validateProblemNameNotFound() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateExperimentParams("xxx", "nsga-ii",
                         List.of("hypervolume"), 1000, 1)
@@ -47,8 +46,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateAlgorithm_notFound() {
-        // "fancy-algo" nie znajduje się w set {"nsga-ii", "e-moea", "gde3"}
+    void validateAlgorithmNotFound() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateExperimentParams("uf1", "fancy-algo",
                         List.of("hypervolume"), 1000, 1)
@@ -57,8 +55,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateMetrics_empty() {
-        // brak metryk
+    void validateMetricsEmpty() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateExperimentParams("uf1", "nsga-ii",
                         List.of(), 1000, 1)
@@ -67,7 +64,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateMetrics_unknown() {
+    void validateMetricsUnknown() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateExperimentParams("uf1", "nsga-ii",
                         List.of("unknownMetric"), 1000, 1)
@@ -76,7 +73,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateEvaluationNumber_zeroOrNegative() {
+    void validateEvaluationNumberZeroOrNegative() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateExperimentParams("uf1", "nsga-ii",
                         List.of("spacing"), -1, 1)
@@ -85,7 +82,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateIterationNumber_negative() {
+    void validateIterationNumberNegative() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateExperimentParams("uf1", "nsga-ii",
                         List.of("spacing"), 100, -5)
@@ -94,7 +91,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateDates_startAfterEnd() {
+    void validateDatesStartAfterEnd() {
         Timestamp start = Timestamp.valueOf("2024-01-02 00:00:00");
         Timestamp end = Timestamp.valueOf("2024-01-01 00:00:00");
 
@@ -105,8 +102,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateDates_nullDates() {
-        // endDate=null
+    void validateDatesNullEnd() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateStatsParams("uf1", "gde3",
                         Timestamp.valueOf("2024-01-01 00:00:00"), null)
@@ -115,11 +111,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateStatus_unknown() {
-        // W validateListParams(...) => statuses.forEach(this::validateStatus)
-        // i validateStatus => StatusEnum.valueOf(...)
-        // "IN_PROGRESS" / "FAILED" / "READY" / "COMPLETED" => ok
-        // "whatever" => błąd
+    void validateStatusUnknown() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateListParams(List.of("whatever"), List.of("uf1"),
                         List.of("nsga-ii"), List.of("hypervolume"))
@@ -128,7 +120,7 @@ class ExperimentValidatorTest {
     }
 
     @Test
-    void testValidateStatus_ok() {
+    void validateStatusOk() {
         assertDoesNotThrow(() ->
                 validator.validateListParams(List.of("READY", "COMPLETED"),
                         List.of("uf1"), List.of("nsga-ii"), List.of("spacing"))
