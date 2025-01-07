@@ -2,7 +2,7 @@ package com.example.Endpoint_Explorers.component;
 
 import com.example.Endpoint_Explorers.model.MetricTypeEnum;
 import com.example.Endpoint_Explorers.model.StatusEnum;
-import com.example.Endpoint_Explorers.request.MultiExperimentRequest;
+import com.example.Endpoint_Explorers.request.ManyDifferentExperimentRequest;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.core.spi.AlgorithmFactory;
@@ -37,7 +37,7 @@ public class ExperimentValidator {
         );
     }
 
-    public void validateMultiExperimentRequest(MultiExperimentRequest request) {
+    public void validateMultiExperimentRequest(ManyDifferentExperimentRequest request) {
         if (request.getProblems() == null || request.getProblems().isEmpty()) {
             throw new IllegalArgumentException("At least one problem is required.");
         }

@@ -10,7 +10,7 @@ public class CliConfig {
     public static final String CHECK_STATUS_URL = "http://localhost:8080/experiments/ready";
     public static final String EXPERIMENT_LIST_URL = "http://localhost:8080/experiment-list";
     public static final String STATS_URL = "http://localhost:8080/stats";
-    public static final String RUN_MULTI_EXPERIMENTS_URL = "http://localhost:8080/experiments/multi";
+    public static final String RUN_MANY_DIFFERENT_EXPERIMENTS_URL = "http://localhost:8080/experiments/manyDifferent";
 
     private CliConfig() {
     }

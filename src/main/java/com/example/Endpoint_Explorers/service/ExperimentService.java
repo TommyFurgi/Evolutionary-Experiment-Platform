@@ -5,7 +5,7 @@ import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
-import com.example.Endpoint_Explorers.request.MultiExperimentRequest;
+import com.example.Endpoint_Explorers.request.ManyDifferentExperimentRequest;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -71,7 +71,7 @@ public class ExperimentService {
         }
     }
 
-    public void runMultiExperiments(MultiExperimentRequest request) {
+    public void runManyDifferentExperiments(ManyDifferentExperimentRequest request) {
         Completable completable = Completable.fromCallable(() -> {
             List<Integer> experimentIds = new ArrayList<>();
             for (String problem : request.getProblems()) {

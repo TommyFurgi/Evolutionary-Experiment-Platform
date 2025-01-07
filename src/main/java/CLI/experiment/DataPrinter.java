@@ -11,6 +11,7 @@ public class DataPrinter {
     private static final int COLUMN_PADDING = 2;
     private static final int DEFAULT_METRIC_COLUMN_WIDTH = 15;
     private static final int EXTRA_WIDTH_FOR_METRIC_NAME = 5;
+    private static final int FLOOR_AMOUNT = 150;
 
     public static void displayTable(Experiment experiment) {
         List<Metrics> metrics = experiment.metrics();
@@ -98,27 +99,42 @@ public class DataPrinter {
 
     public static void printStats(String problemName, String algorithm, String startDateTime,
                                   String endDateTime, String statType, Map<String, List<Double>> metricsMap) {
+
+        printStatsConfiguration(problemName, algorithm, startDateTime, endDateTime, statType);
+
+        int maxEvaluations = calculateMaxEvaluations(metricsMap);
+
+        printMetricNames(maxEvaluations);
+        printStatsScore(metricsMap, maxEvaluations);
+    }
+
+    private static void printStatsConfiguration(String problemName, String algorithm, String startDateTime, String endDateTime, String statType) {
         System.out.println("\nStatistics for the following input:");
         System.out.print("Problem: " + problemName);
         System.out.print(", Algorithm: " + algorithm);
         System.out.print(", Start DateTime: " + startDateTime);
         System.out.print(", End DateTime: " + (endDateTime.isEmpty() ? "Current Time" : endDateTime));
-        System.out.print(", Stat Type: " + statType);
-        System.out.print("\n-----------------------------------\n");
+        System.out.println(", Stat Type: " + statType);
+        System.out.println("_".repeat(FLOOR_AMOUNT));
+    }
 
-
-        int maxEvaluations = metricsMap.values().stream()
+    private static int calculateMaxEvaluations(Map<String, List<Double>> metricsMap) {
+        return metricsMap.values().stream()
                 .mapToInt(List::size)
                 .max()
                 .orElse(0);
+    }
 
+    private static void printMetricNames(int maxEvaluations) {
         System.out.printf("%-35s", "Metric Name");
         for (int i = 1; i <= maxEvaluations; i++) {
             System.out.printf("%-12s", "NFE" + (i * 100));
         }
         System.out.println();
-        System.out.println("----------------------------------------------------------------------------------");
+    }
 
+    private static void printStatsScore(Map<String, List<Double>> metricsMap, int maxEvaluations) {
+        System.out.println("_".repeat(FLOOR_AMOUNT));
         metricsMap.forEach((key, values) -> {
             System.out.printf("%-35s", key);
             for (int i = 0; i < maxEvaluations; i++) {
@@ -130,12 +146,12 @@ public class DataPrinter {
             }
             System.out.println();
         });
-        System.out.println("----------------------------------------------------------------------------------");
+        System.out.println("_".repeat(FLOOR_AMOUNT));
     }
 
     public static void displayExperimentsList(List<Experiment> experiments) {
         System.out.printf("%-5s %-15s %-15s %-15s %-15s %-25s%n", "ID", "Evaluations", "Algorithm", "Problem", "Status", "Date");
-        System.out.println("---------------------------------------------------------------------------------------------");
+        System.out.println("_".repeat(FLOOR_AMOUNT));
 
         for (Experiment experiment : experiments) {
             System.out.printf("%-5d %-15d %-15s %-15s %-15s %-25s%n",

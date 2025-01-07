@@ -4,20 +4,16 @@ import com.example.Endpoint_Explorers.component.ExperimentDtoMapper;
 import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.ExperimentDto;
-import com.example.Endpoint_Explorers.request.MultiExperimentRequest;
+import com.example.Endpoint_Explorers.request.ManyDifferentExperimentRequest;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import com.example.Endpoint_Explorers.service.ExperimentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -55,12 +51,12 @@ public class ExperimentController {
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
         }
     }
-    @PostMapping("/multi")
-    public ResponseEntity<String> runMultiExperiments(@RequestBody @Valid MultiExperimentRequest request) {
+    @PostMapping("/manyDifferent")
+    public ResponseEntity<String> runManyDifferentExperiments(@RequestBody @Valid ManyDifferentExperimentRequest request) {
         try {
             log.info("Received multi-experiments request: {}", request);
             validator.validateMultiExperimentRequest(request);
-            service.runMultiExperiments(request);
+            service.runManyDifferentExperiments(request);
             return ResponseEntity.ok("Request accepted. Experiments running in background.");
         }catch (IllegalArgumentException e){
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());

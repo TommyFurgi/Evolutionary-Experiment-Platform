@@ -21,6 +21,8 @@ import java.util.Map;
 
 @CommandLine.Command(name = "getStats", description = "Get experiment stats from server")
 public class GetStatsCommand implements Runnable {
+    private record LocalDateTimeResult(LocalDateTime start, LocalDateTime end) {
+    }
 
     @CommandLine.Parameters(index = "0", description = "Calculate stats for the given problem")
     private String problemName;
@@ -48,9 +50,27 @@ public class GetStatsCommand implements Runnable {
     @Override
     public void run() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
+
+        LocalDateTimeResult result = getLocalDateTimeResult(formatter);
+        if (result == null) return;
+
+        RestTemplate restTemplate = new RestTemplate();
+        String statsUrl = CliConfig.STATS_URL;
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(statsUrl)
+                .queryParam("problemName", problemName)
+                .queryParam("algorithm", algorithm)
+                .queryParam("startDateTime", result.start().format(formatter))
+                .queryParam("endDateTime", result.end().format(formatter))
+                .queryParam("statType", statType);
+
+        String finalUrl = builder.build().toUriString();
+        calculateStatsUsingServer(restTemplate, finalUrl);
+    }
+
+    private LocalDateTimeResult getLocalDateTimeResult(DateTimeFormatter formatter) {
         LocalDateTime start;
         LocalDateTime end;
-
         try {
             start = LocalDateTime.parse(startDateTime, formatter);
             if (endDateTime.isEmpty()) {
@@ -62,26 +82,17 @@ public class GetStatsCommand implements Runnable {
             System.out.println(end);
         } catch (DateTimeParseException e) {
             System.err.println("Error: Dates must be in 'yyyy-MM-dd HH:mm' format.");
-            return;
+            return null;
         }
 
         if (start.isAfter(end)) {
             System.err.println("Error: Start date and time must be earlier than or equal to end date and time.");
-            return;
+            return null;
         }
+        return new LocalDateTimeResult(start, end);
+    }
 
-        RestTemplate restTemplate = new RestTemplate();
-        String statsUrl = CliConfig.STATS_URL;
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(statsUrl)
-                .queryParam("problemName", problemName)
-                .queryParam("algorithm", algorithm)
-                .queryParam("startDateTime", start.format(formatter))
-                .queryParam("endDateTime", end.format(formatter))
-                .queryParam("statType", statType);
-
-        String finalUrl = builder.build().toUriString();
-
+    private void calculateStatsUsingServer(RestTemplate restTemplate, String finalUrl) {
         try {
             String response = restTemplate.getForObject(finalUrl, String.class);
             ObjectMapper objectMapper = new ObjectMapper();
