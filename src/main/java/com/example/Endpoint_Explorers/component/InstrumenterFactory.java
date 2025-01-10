@@ -11,12 +11,11 @@ import java.util.Optional;
 @Slf4j
 @Component
 public class InstrumenterFactory {
-    private static final int FREQUENCY = 100;
 
-    public Instrumenter createInstrumenter(RunExperimentRequest request) {
+    public Instrumenter createInstrumenter(RunExperimentRequest request, int frequency) {
         Instrumenter instrumenter = new Instrumenter()
                 .withProblem(request.getProblemName())
-                .withFrequency(FREQUENCY);
+                .withFrequency(frequency);
 
         for (String metricName : request.getMetrics()) {
             Optional<MetricTypeEnum> metricOpt = MetricTypeEnum.fromString(metricName);

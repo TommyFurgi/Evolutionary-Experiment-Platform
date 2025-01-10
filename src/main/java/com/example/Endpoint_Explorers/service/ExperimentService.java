@@ -1,25 +1,23 @@
 package com.example.Endpoint_Explorers.service;
 
 import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
+import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
-import com.example.Endpoint_Explorers.model.MetricTypeEnum;
 import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
+import com.example.Endpoint_Explorers.request.ManyDifferentExperimentRequest;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import jakarta.persistence.Table;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.analysis.collector.Observations;
-import org.moeaframework.core.spi.AlgorithmFactory;
-import org.moeaframework.core.spi.ProblemFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -29,13 +27,32 @@ public class ExperimentService {
     private final ExperimentObservableFactory observableFactory;
     private final ExperimentRepository repository;
     private final MetricsService metricsService;
-    private final Set<String> allRegisteredProblems = ProblemFactory.getInstance().getAllRegisteredProblems();
-    private final Set<String> allAlgorithms = AlgorithmFactory.getInstance().getAllDiagnosticToolAlgorithms();
+    private final ExperimentValidator validator;
 
+
+    public void runExperiments(RunExperimentRequest request) {
+        Completable completable = Completable.fromCallable(() -> {
+            List<Integer> experimentIds = new ArrayList<>();
+            for (int i = 0; i < request.getExperimentIterationNumber(); i++) {
+                try {
+                    int expId = runExperiment(request);
+                    experimentIds.add(expId);
+                } catch (Exception e) {
+                    log.error("Something failed for one of the experiments. List of created experiments without an error: {}", experimentIds, e);
+                    throw e;
+                }
+            }
+            return experimentIds;
+        });
+
+        completable
+                .subscribeOn(Schedulers.computation())
+                .doOnComplete(() -> log.info("All experiments completed successfully."))
+                .doOnError(error -> log.error("Error occurred while running experiments: ", error))
+                .subscribe();
+    }
     @Transactional
     public int runExperiment(RunExperimentRequest request) {
-        validateRequest(request);
-
         Experiment experiment = initializeExperiment(request);
         log.info("Running experiment with request: {}", request);
 
@@ -54,19 +71,32 @@ public class ExperimentService {
         }
     }
 
-    private void validateRequest(RunExperimentRequest request) {
-        if (!allRegisteredProblems.contains(request.getProblemName())) {
-            throw new IllegalArgumentException("Problem not found: " + request.getProblemName());
-        }
-        if (!allAlgorithms.contains(request.getAlgorithm())) {
-            throw new IllegalArgumentException("Algorithm not found: " + request.getAlgorithm());
-        }
-
-        for (String metricName : request.getMetrics()) {
-            if (MetricTypeEnum.fromString(metricName).isEmpty()) {
-                throw new IllegalArgumentException("Unknown metric specified: " + metricName);
+    public void runManyDifferentExperiments(ManyDifferentExperimentRequest request) {
+        Completable completable = Completable.fromCallable(() -> {
+            List<Integer> experimentIds = new ArrayList<>();
+            for (String problem : request.getProblems()) {
+                for (String algorithm : request.getAlgorithms()) {
+                    for (int i = 0; i < request.getExperimentIterationNumber(); i++) {
+                        RunExperimentRequest singleReq = new RunExperimentRequest(
+                                problem,
+                                algorithm,
+                                request.getMetrics(),
+                                request.getEvaluationNumber(),
+                                request.getExperimentIterationNumber()
+                        );
+                        int expId = runExperiment(singleReq);
+                        experimentIds.add(expId);
+                    }
+                }
             }
-        }
+            return experimentIds;
+        });
+
+        completable
+                .subscribeOn(Schedulers.computation())
+                .doOnComplete(() -> log.info("All experiments completed successfully."))
+                .doOnError(error -> log.error("Error occurred while running experiments: ", error))
+                .subscribe();
     }
 
     private void handleSuccess(Experiment experiment, Observations result, RunExperimentRequest request) {
@@ -91,16 +121,17 @@ public class ExperimentService {
 
     private Experiment initializeExperiment(RunExperimentRequest request) {
         Experiment experiment = Experiment.builder()
-                .problemName(request.getProblemName())
-                .algorithm(request.getAlgorithm())
+                .problemName(request.getProblemName().toLowerCase())
+                .algorithm(request.getAlgorithm().toLowerCase())
                 .numberOfEvaluation(request.getEvaluationNumber())
                 .status(StatusEnum.IN_PROGRESS)
+                .datetime(new Timestamp(System.currentTimeMillis()))
                 .metricsList(new ArrayList<>())
                 .build();
 
         Experiment savedExperiment = repository.save(experiment);
         log.info("Experiment with id {} saved successfully: {}", savedExperiment.getId(), experiment);
-        return experiment;
+        return savedExperiment;
     }
 
     public Optional<Experiment> getExperimentById(int id) {
@@ -124,16 +155,26 @@ public class ExperimentService {
         return experiments;
     }
 
-    public List<Experiment> getAllExperimentsWithStatus(String status) {
-        if (status == null || status.trim().isEmpty() || status.equalsIgnoreCase("all")) {
-            return repository.findAll();
-        }
+    public List<Experiment> getFilteredExperiments(List<String> statuses, List<String> problems, List<String> algorithms, List<String> metrics) {
+        validator.validateListParams(statuses, problems, algorithms, metrics);
+        List<String> parsedMetrics = metrics.stream()
+                .map(metricsService::parseMetricsName)
+                .collect(Collectors.toList());
 
-        try {
-            StatusEnum statusEnum = StatusEnum.valueOf(status.toUpperCase());
-            return repository.findByStatus(statusEnum);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid status: " + status);
+        Set<String> filteredStatuses = (statuses.isEmpty() || statuses.get(0).isEmpty()) ? null : new HashSet<>(statuses);
+        Set<String> filteredProblems = convertListToLowerCaseSet(problems);
+        Set<String> filteredAlgorithms = convertListToLowerCaseSet(algorithms);
+        Set<String> filteredMetrics = convertListToLowerCaseSet(parsedMetrics);
+
+        return repository.findFilteredExperiments(filteredStatuses, filteredProblems, filteredAlgorithms, filteredMetrics);
+    }
+
+    private Set<String> convertListToLowerCaseSet(List<String> list) {
+        if (list == null || list.isEmpty() || list.get(0).isEmpty()) {
+            return null;
         }
+        return list.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
     }
 }

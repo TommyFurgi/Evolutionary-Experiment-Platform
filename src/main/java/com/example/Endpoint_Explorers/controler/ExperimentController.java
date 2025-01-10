@@ -1,7 +1,10 @@
 package com.example.Endpoint_Explorers.controler;
 
+import com.example.Endpoint_Explorers.component.ExperimentDtoMapper;
+import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.ExperimentDto;
+import com.example.Endpoint_Explorers.request.ManyDifferentExperimentRequest;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import com.example.Endpoint_Explorers.service.ExperimentService;
 import jakarta.validation.Valid;
@@ -10,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -20,14 +21,46 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ExperimentController {
     private final ExperimentService service;
+    private final ExperimentDtoMapper dtoMapper;
+    private final ExperimentValidator validator;
 
     @PostMapping()
     public ResponseEntity<String> runExperiment(@RequestBody @Valid RunExperimentRequest request) {
-        System.out.println("Received experiment request: " + request);
-        log.info("Received experiment request: {}", request);
+        try {
+            System.out.println("Received experiment request: " + request);
+            log.info("Received experiment request: {}", request);
+            validator.validateExperimentRequest(request);
+            int experimentId = service.runExperiment(request);
+            return ResponseEntity.ok("Experiment started successfully, experimentID :  " + experimentId);
 
-        int experimentId = service.runExperiment(request);
-        return ResponseEntity.ok("Experiment started successfully, experimentID :  " + experimentId);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/many")
+    public ResponseEntity<String> runExperiments(@RequestBody @Valid RunExperimentRequest request) {
+        try {
+            System.out.println("Received experiments request: " + request);
+            log.info("Received experiments request: {}", request);
+            validator.validateExperimentRequest(request);
+            service.runExperiments(request);
+            return ResponseEntity.ok("Experiments started successfully");
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
+        }
+    }
+    @PostMapping("/manyDifferent")
+    public ResponseEntity<String> runManyDifferentExperiments(@RequestBody @Valid ManyDifferentExperimentRequest request) {
+        try {
+            log.info("Received multi-experiments request: {}", request);
+            validator.validateMultiExperimentRequest(request);
+            service.runManyDifferentExperiments(request);
+            return ResponseEntity.ok("Request accepted. Experiments running in background.");
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
@@ -41,35 +74,8 @@ public class ExperimentController {
     @GetMapping("/ready")
     public ResponseEntity<List<ExperimentDto>> getDoneExperiments() {
         List<Experiment> experiments = service.getReadyExperiments();
-        List<ExperimentDto> experimentDtos = convertToDtoList(experiments);
+        List<ExperimentDto> experimentDtos = dtoMapper.convertToDtoList(experiments);
         log.debug("Returning {} experiments marked as 'ready'.", experimentDtos.size());
         return ResponseEntity.ok(experimentDtos);
-    }
-
-    @GetMapping("/list/{status}")
-    public ResponseEntity<List<ExperimentDto>> getExperimentsList(@PathVariable String status) {
-        try {
-            List<Experiment> experiments = service.getAllExperimentsWithStatus(status);
-            List<ExperimentDto> experimentDtos = convertToDtoList(experiments);
-            return ResponseEntity.ok(experimentDtos);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Collections.emptyList());
-        }
-    }
-
-    private List<ExperimentDto> convertToDtoList(List<Experiment> experiments) {
-        return experiments.stream()
-                .map(this::createDto)
-                .toList();
-    }
-
-    private ExperimentDto createDto(Experiment experiment) {
-        return new ExperimentDto(
-                experiment.getId(),
-                experiment.getProblemName(),
-                experiment.getAlgorithm(),
-                experiment.getNumberOfEvaluation(),
-                experiment.getStatus()
-        );
     }
 }

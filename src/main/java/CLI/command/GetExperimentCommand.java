@@ -3,8 +3,11 @@ package CLI.command;
 import CLI.config.CliConfig;
 import CLI.experiment.Experiment;
 import CLI.experiment.ExperimentMapper;
-import CLI.experiment.ExperimentTable;
+import CLI.experiment.DataPrinter;
+import CLI.experiment.ExperimentStatusEnum;
+import CLI.handler.GlobalExceptionHandler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 
@@ -15,22 +18,21 @@ public class GetExperimentCommand implements Runnable {
 
     @Override
     public void run() {
-        String url = CliConfig.getInstance().getGetExperimentUrl() + experimentId;
+        String url = CliConfig.GET_EXPERIMENT_URL + experimentId;
         RestTemplate restTemplate = new RestTemplate();
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                Experiment experiment = ExperimentMapper.parseExperiment(response);
 
-                System.out.println(experiment.toString());
-                if (experiment.status().equals("COMPLETED"))
-                    ExperimentTable.displayTable(experiment);
-            } else {
-                System.err.println("Failed to fetch experiment. Status: " + response.getStatusCode());
+            Experiment experiment = ExperimentMapper.parseExperiment(response);
+
+            ExperimentStatusEnum statusEnum = ExperimentStatusEnum.valueOf(experiment.status());
+            if (statusEnum == ExperimentStatusEnum.COMPLETED) {
+                DataPrinter.displayTable(experiment);
             }
-        } catch (Exception e) {
-            System.err.println("Error while getting experiment: " + e.getMessage());
+
+        } catch (HttpClientErrorException e) {
+            GlobalExceptionHandler.handleHttpClientError(e, "Error while getting experiment: Experiment with id: " + experimentId + " not found");
         }
     }
 }

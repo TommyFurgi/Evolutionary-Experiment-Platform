@@ -24,7 +24,7 @@ public class ScheduledExperimentFetcher {
 
     private void sendRequest() {
         try {
-            String Url = CliConfig.getInstance().getCheckStatusUrl();
+            String Url = CliConfig.CHECK_STATUS_URL;
             ResponseEntity<String> response = restTemplate.getForEntity(Url, String.class);
             handleResponse(response);
         } catch (Exception e) {
@@ -35,13 +35,16 @@ public class ScheduledExperimentFetcher {
     private void handleResponse(ResponseEntity<String> response) {
         if (response.getStatusCode().is2xxSuccessful()) {
             List<Experiment> experiments = parseExperimentList(response);
-            experiments.forEach(experiment -> {
-                System.out.println(experiment.toString());
-            });
-
+            if (!experiments.isEmpty()) {
+                System.out.print("\033[s");
+                System.out.println();
+                experiments.forEach(experiment -> System.out.println(experiment.toString()));
+                System.out.print("\033[u");
+                System.out.print("> ");
+                System.out.flush();
+            }
         } else {
             System.err.println("Failed to fetch experiment. Status: " + response.getStatusCode());
         }
     }
-
 }

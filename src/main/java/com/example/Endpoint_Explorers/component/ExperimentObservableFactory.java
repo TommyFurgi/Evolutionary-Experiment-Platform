@@ -13,13 +13,17 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ExperimentObservableFactory {
-
+    private static final int FREQUENCY = 100;
     private final InstrumenterFactory instrumenterFactory;
     private final ExecutorFactory executorFactory;
 
+    public static int getFrequency() {
+        return FREQUENCY;
+    }
+
     public Observable<Observations> createExperimentObservable(RunExperimentRequest request) throws IllegalArgumentException {
         return Observable.fromCallable(() -> {
-            Instrumenter instrumenter = instrumenterFactory.createInstrumenter(request);
+            Instrumenter instrumenter = instrumenterFactory.createInstrumenter(request, FREQUENCY);
             Executor executor = executorFactory.createExecutor(request, instrumenter);
             executor.run();
             return instrumenter.getObservations();
