@@ -112,7 +112,7 @@ class StatisticsServiceTest {
 
         // when
         Map<String, List<Double>> resultMap = statisticsService.getStatsTimeFromInterval(
-                problemName, algorithm, startStr, endStr, statType);
+                problemName, algorithm, startStr, endStr, statType, null);
 
         // then
         assertTrue(resultMap.containsKey("hypervolume"));
@@ -142,7 +142,7 @@ class StatisticsServiceTest {
 
         // when & then
         assertThrows(IllegalArgumentException.class, () ->
-                statisticsService.getStatsTimeFromInterval(problemName, algorithm, startStr, endStr, statType)
+                statisticsService.getStatsTimeFromInterval(problemName, algorithm, startStr, endStr, statType, null)
         );
     }
 
@@ -181,7 +181,7 @@ class StatisticsServiceTest {
 
         // when
         Map<String, List<Double>> result = statisticsService.getStatsTimeFromInterval(
-                problemName, algorithm, startStr, endStr, statType);
+                problemName, algorithm, startStr, endStr, statType, null);
 
         // then
         assertTrue(result.containsKey("hypervolume"));
@@ -198,7 +198,7 @@ class StatisticsServiceTest {
 
         assertThrows(IllegalArgumentException.class, () ->
                 statisticsService.getStatsTimeFromInterval("UF1", "e-MOEA",
-                        "2024-01-01_00:00:00", "2024-12-31_23:59:59", "AVG")
+                        "2024-01-01_00:00:00", "2024-12-31_23:59:59", "AVG", null)
         );
     }
 
@@ -223,7 +223,7 @@ class StatisticsServiceTest {
 
         // when
         Map<String, List<Double>> result = statisticsService.getStatsTimeFromInterval(
-                "ZDT3", "NSGA-II", startStr, endStr, "AVG"
+                "ZDT3", "NSGA-II", startStr, endStr, "AVG", null
         );
 
         // then
