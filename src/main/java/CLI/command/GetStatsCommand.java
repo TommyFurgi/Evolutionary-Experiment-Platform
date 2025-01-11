@@ -1,5 +1,7 @@
 package CLI.command;
 
+import CLI.FilesSaver;
+import CLI.component.MetricsAndFiles;
 import CLI.config.CliConfig;
 import CLI.config.CliDefaults;
 import CLI.experiment.DataPrinter;
@@ -17,7 +19,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Map;
 
 @CommandLine.Command(name = "getStats", description = "Get experiment stats from server")
 public class GetStatsCommand implements Runnable {
@@ -47,6 +48,21 @@ public class GetStatsCommand implements Runnable {
     @CommandLine.Option(names = {"-a", "--statType"}, description = "Type of Statistics measure (default: median)", defaultValue = CliDefaults.DEFAULT_STATISTIC_TYPE)
     private String statType;
 
+    @CommandLine.Option(
+            names = {"-p", "--plot"},
+            description = "Plot metrics (true if specified, false otherwise)",
+            defaultValue = CliDefaults.DEFAULT_PLOT_VALUE
+    )
+    private String isPlot;
+
+    @CommandLine.Option(
+            names = {"-m", "--metricsNameToPlot"},
+            description = "Specify one, multiple metric names, or use 'all' to select all metrics.",
+            defaultValue = CliDefaults.DEFAULT_METRIC_NAMES,
+            split = ","
+    )
+    private List<String> metricsNamesToPlot;
+
     @Override
     public void run() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
@@ -62,7 +78,9 @@ public class GetStatsCommand implements Runnable {
                 .queryParam("algorithm", algorithm)
                 .queryParam("startDateTime", result.start().format(formatter))
                 .queryParam("endDateTime", result.end().format(formatter))
-                .queryParam("statType", statType);
+                .queryParam("statType", statType)
+                .queryParam("isPlot", isPlot)
+                .queryParam("metricsNamesToPlot", metricsNamesToPlot);
 
         String finalUrl = builder.build().toUriString();
         calculateStatsUsingServer(restTemplate, finalUrl);
@@ -78,8 +96,6 @@ public class GetStatsCommand implements Runnable {
             } else {
                 end = LocalDateTime.parse(endDateTime, formatter);
             }
-            System.out.println(start);
-            System.out.println(end);
         } catch (DateTimeParseException e) {
             System.err.println("Error: Dates must be in 'yyyy-MM-dd HH:mm' format.");
             return null;
@@ -97,9 +113,12 @@ public class GetStatsCommand implements Runnable {
             String response = restTemplate.getForObject(finalUrl, String.class);
             ObjectMapper objectMapper = new ObjectMapper();
 
-            Map<String, List<Double>> metricsMap = objectMapper.readValue(response, new TypeReference<>() {
+            MetricsAndFiles metricsAndFiles = objectMapper.readValue(response, new TypeReference<>() {
             });
-            DataPrinter.printStats(problemName, algorithm, startDateTime, endDateTime, statType, metricsMap);
+            DataPrinter.printStats(problemName, algorithm, startDateTime, endDateTime, statType, metricsAndFiles.getMetrics());
+            if (Boolean.parseBoolean(isPlot)) {
+                FilesSaver.saveFiles(metricsAndFiles.getFiles());
+            }
 
         } catch (HttpClientErrorException e) {
             GlobalExceptionHandler.handleHttpClientError(e, "Failed to fetch statistics: ");
@@ -109,5 +128,4 @@ public class GetStatsCommand implements Runnable {
             GlobalExceptionHandler.handleJsonProcessingError(e);
         }
     }
-
 }

@@ -1,8 +1,8 @@
 package com.example.Endpoint_Explorers.service;
 
-import com.example.Endpoint_Explorers.component.ExecutorFactory;
 import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
 import com.example.Endpoint_Explorers.component.ExperimentValidator;
+import com.example.Endpoint_Explorers.component.PlotFactory;
 import com.example.Endpoint_Explorers.component.StatisticsCalculator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.Metrics;
@@ -10,30 +10,40 @@ import com.example.Endpoint_Explorers.model.StatEnum;
 import com.example.Endpoint_Explorers.model.StatusEnum;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.repository.MetricsRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.xml.validation.Validator;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class StatisticsService {
-    private record TimeRange(Timestamp start, Timestamp end) { }
+    private record TimeRange(Timestamp start, Timestamp end) {
+    }
+
     private final ExperimentRepository experimentRepository;
     private final MetricsRepository metricsRepository;
     private final StatisticsCalculator statisticsCalculator;
     private final ExperimentValidator validator;
+    private Map<String, List<Double>> resultMetricsMap;
+    @Getter
+    private List<String> fileNamePaths = new ArrayList<>();
+    private Timestamp startDate;
+    private Timestamp endDate;
 
-    public Map<String, List<Double>> getStatsTimeFromInterval(String problemName, String algorithm, String start, String end, String statType) {
+    public Map<String, List<Double>> getStatsTimeFromInterval(String problemName, String algorithm, String start, String end, String statType, List<String> metricsNames) {
         StatEnum enumStatType = StatEnum.extractStatsType(statType);
 
         TimeRange timestamps = parseTimestamps(start, end);
-        Timestamp startDate = timestamps.start;
-        Timestamp endDate = timestamps.end;
+        startDate = timestamps.start;
+        endDate = timestamps.end;
 
         validator.validateStatsParams(problemName, algorithm, startDate, endDate);
 
@@ -47,7 +57,10 @@ public class StatisticsService {
 
         Map<String, List<List<Float>>> metricsMap = createMetricsMap(metricsList, maxIteration);
 
-        return createResultMetricsMap(metricsMap, maxIteration, enumStatType);
+        createResultMetricsMap(metricsMap, maxIteration, enumStatType);
+
+        generatePlot(metricsNames, algorithm, problemName, createIterations(maxIteration));
+        return resultMetricsMap;
     }
 
     private TimeRange parseTimestamps(String start, String end) {
@@ -114,8 +127,8 @@ public class StatisticsService {
         return metricsMap;
     }
 
-    private Map<String, List<Double>> createResultMetricsMap(Map<String, List<List<Float>>> metricsMap, int maxIteration, StatEnum enumStatType) {
-        Map<String, List<Double>> resultMetricsMap = new HashMap<>();
+    private void createResultMetricsMap(Map<String, List<List<Float>>> metricsMap, int maxIteration, StatEnum enumStatType) {
+        resultMetricsMap = new HashMap<>();
 
         for (String metricsName : metricsMap.keySet()) {
             for (int i = 0; i < maxIteration; i++) {
@@ -123,6 +136,32 @@ public class StatisticsService {
                         .add(statisticsCalculator.calculateStat(metricsMap.get(metricsName).get(i), enumStatType));
             }
         }
-        return resultMetricsMap;
+    }
+
+    private List<Integer> createIterations(int maxIteration) {
+        List<Integer> iterations = new ArrayList<>();
+        int frequency = ExperimentObservableFactory.getFrequency();
+        for (int i = 1; i <= maxIteration; i++) {
+            iterations.add(i * frequency);
+        }
+        return iterations;
+    }
+
+    public void generatePlot(List<String> metricsNames, String algorithmName, String problemName, List<Integer> iterations) {
+        fileNamePaths = new ArrayList<>();
+        if (metricsNames.size() == 1 && metricsNames.getFirst().equals("all")) {
+            for (String key : resultMetricsMap.keySet()) {
+                String plotPath = PlotFactory.createPlot(key, algorithmName, problemName, startDate, endDate, iterations, resultMetricsMap.get(key));
+                fileNamePaths.add(plotPath);
+            }
+        } else if (metricsNames.size() != 1) {
+            for (String key : metricsNames) {
+                String plotPath = PlotFactory.createPlot(key, algorithmName, problemName, startDate, endDate, iterations, resultMetricsMap.get(key));
+                fileNamePaths.add(plotPath);
+            }
+        } else if (!metricsNames.getFirst().equals("none")) {
+            String plotPath = PlotFactory.createPlot(metricsNames.getFirst(), algorithmName, problemName, startDate, endDate, iterations, resultMetricsMap.get(metricsNames.getFirst()));
+            fileNamePaths.add(plotPath);
+        }
     }
 }
