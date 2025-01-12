@@ -30,18 +30,21 @@ public class RunExperimentCommand implements Runnable {
     @CommandLine.Option(names = {"-n", "--experimentIterationNumber"}, description = "Number of experiment iteration (default: 1)", defaultValue = CliDefaults.DEFAULT_EXPERIMENT_ITERATION_NUMBER)
     private Integer experimentIterationNumber;
 
+    @CommandLine.Option(names = {"-g", "--groupName"}, description = "Name of the group (default: none)", defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
+    private String groupName;
+
     @Override
     public void run() {
         String urlExperiment = CliConfig.RUN_EXPERIMENT_URL;
         String urlExperiments = CliConfig.RUN_EXPERIMENTS_URL;
 
         RunExperimentRequest request = new RunExperimentRequest(
-                problemName, algorithm, metrics, evaluationNumber, experimentIterationNumber);
+                problemName, algorithm, metrics, evaluationNumber, experimentIterationNumber, groupName);
         RestTemplate restTemplate = new RestTemplate();
 
         if (experimentIterationNumber == 1) {
-            System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
-                    problemName, algorithm, metrics, evaluationNumber);
+            System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n Group: %s%n",
+                    problemName, algorithm, metrics, evaluationNumber, groupName);
             try {
                 String response = restTemplate.postForObject(urlExperiment, request, String.class);
                 System.out.println("Server response: " + response);
@@ -49,8 +52,8 @@ public class RunExperimentCommand implements Runnable {
                 GlobalExceptionHandler.handleHttpClientError(e, "Error while running experiment: ");
             }
         } else if (experimentIterationNumber > 1) {
-            System.out.printf("Preparing to run %d experiments:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n",
-                    experimentIterationNumber, problemName, algorithm, metrics, evaluationNumber);
+            System.out.printf("Preparing to run %d experiments:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n Group: %s%n",
+                    experimentIterationNumber, problemName, algorithm, metrics, evaluationNumber, groupName);
             try {
                 String response = restTemplate.postForObject(urlExperiments, request, String.class);
                 System.out.println("Server response: " + response);

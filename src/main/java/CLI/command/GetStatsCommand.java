@@ -45,7 +45,10 @@ public class GetStatsCommand implements Runnable {
     )
     private String endDateTime;
 
-    @CommandLine.Option(names = {"-a", "--statType"}, description = "Type of Statistics measure (default: median)", defaultValue = CliDefaults.DEFAULT_STATISTIC_TYPE)
+    @CommandLine.Option(
+            names = {"-a", "--statType"},
+            description = "Type of Statistics measure (default: median)",
+            defaultValue = CliDefaults.DEFAULT_STATISTIC_TYPE)
     private String statType;
 
     @CommandLine.Option(
@@ -62,6 +65,12 @@ public class GetStatsCommand implements Runnable {
             split = ","
     )
     private List<String> metricsNamesToPlot;
+
+    @CommandLine.Option(
+            names = {"-g", "--groupName"},
+            description = "Name of the group (default: none)",
+            defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
+    private String groupName;
 
     @Override
     public void run() {
@@ -80,7 +89,8 @@ public class GetStatsCommand implements Runnable {
                 .queryParam("endDateTime", result.end().format(formatter))
                 .queryParam("statType", statType)
                 .queryParam("isPlot", isPlot)
-                .queryParam("metricsNamesToPlot", metricsNamesToPlot);
+                .queryParam("metricsNamesToPlot", metricsNamesToPlot)
+                .queryParam("groupName", groupName);
 
         String finalUrl = builder.build().toUriString();
         calculateStatsUsingServer(restTemplate, finalUrl);
@@ -115,7 +125,7 @@ public class GetStatsCommand implements Runnable {
 
             MetricsAndFiles metricsAndFiles = objectMapper.readValue(response, new TypeReference<>() {
             });
-            DataPrinter.printStats(problemName, algorithm, startDateTime, endDateTime, statType, metricsAndFiles.getMetrics());
+            DataPrinter.printStats(problemName, algorithm, startDateTime, endDateTime, statType, metricsAndFiles.getMetrics(), groupName);
             if (Boolean.parseBoolean(isPlot)) {
                 FilesSaver.saveFiles(metricsAndFiles.getFiles());
             }

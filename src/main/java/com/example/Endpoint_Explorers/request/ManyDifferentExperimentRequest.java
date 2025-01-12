@@ -28,4 +28,6 @@ public class ManyDifferentExperimentRequest {
 
     @Min(value = 1, message = "Experiment iteration must be greater than 0")
     private Integer experimentIterationNumber;
+
+    private String groupName;
 }

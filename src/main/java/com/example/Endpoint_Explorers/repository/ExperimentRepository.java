@@ -19,13 +19,15 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
             + "WHERE e.algorithm = :algorithm "
             + "AND e.problemName = :problemName "
             + "AND e.status = :status "
-            + "AND e.datetime BETWEEN :startDate AND :endDate")
+            + "AND e.datetime BETWEEN :startDate AND :endDate "
+            + "AND (:groupName IS NULL OR :groupName = '' OR e.groupName = :groupName)")
     List<Experiment> findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
             @Param("algorithm") String algorithm,
             @Param("problemName") String problemName,
             @Param("status") StatusEnum status,
             @Param("startDate") Timestamp startDate,
-            @Param("endDate") Timestamp endDate);
+            @Param("endDate") Timestamp endDate,
+            @Param("groupName") String groupName);
 
     @Query("SELECT e FROM Experiment e "
             + "LEFT JOIN e.metricsList m "
@@ -33,10 +35,12 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
             + "(:statuses IS NULL OR e.status IN :statuses) AND "
             + "(:problems IS NULL OR e.problemName IN :problems) AND "
             + "(:algorithms IS NULL OR e.algorithm IN :algorithms) AND "
-            + "(:metrics IS NULL OR m.metricsName IN :metrics)")
+            + "(:metrics IS NULL OR m.metricsName IN :metrics) AND"
+            + "(:groups IS NULL OR e.groupName IN :groups)")
     List<Experiment> findFilteredExperiments(
             @Param("statuses") Set<String> statuses,
             @Param("problems") Set<String> problems,
             @Param("algorithms") Set<String> algorithms,
-            @Param("metrics") Set<String> metrics);
+            @Param("metrics") Set<String> metrics,
+            @Param("groups") Set<String> groups);
 }

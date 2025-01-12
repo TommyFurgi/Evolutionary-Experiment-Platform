@@ -25,7 +25,8 @@ public class ExperimentDtoMapper {
                 experiment.getAlgorithm(),
                 experiment.getNumberOfEvaluation(),
                 experiment.getStatus(),
-                experiment.getDatetime()
+                experiment.getDatetime(),
+                experiment.getGroupName()
         );
     }
 }

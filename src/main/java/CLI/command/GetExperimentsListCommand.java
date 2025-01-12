@@ -34,6 +34,9 @@ public class GetExperimentsListCommand implements Runnable {
     @CommandLine.Option(names = {"-m", "--metrics"}, arity = "0..*", description = "Metrics of experiments", defaultValue = CliDefaults.DEFAULT_METRIC_NONE)
     private List<String> metrics;
 
+    @CommandLine.Option(names = {"-g", "--groupNames"}, arity = "0..*", description = "Names of the groups", defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
+    private List<String> groupNames;
+
     @Override
     public void run() {
         String baseUrl = CliConfig.EXPERIMENT_LIST_URL;
@@ -43,6 +46,7 @@ public class GetExperimentsListCommand implements Runnable {
         addToMapIfNotDefault(bodyMap, "problems", problems, CliDefaults.DEFAULT_PROBLEM);
         addToMapIfNotDefault(bodyMap, "algorithms", algorithms, CliDefaults.DEFAULT_ALGORITHM);
         addToMapIfNotDefault(bodyMap, "metrics", metrics, CliDefaults.DEFAULT_METRIC_NONE);
+        addToMapIfNotDefault(bodyMap, "groupNames", groupNames, CliDefaults.DEFAULT_GROUP_VALUE);
 
         RestTemplate restTemplate = new RestTemplate();
 

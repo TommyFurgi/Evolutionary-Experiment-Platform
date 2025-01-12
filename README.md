@@ -73,6 +73,8 @@ setters, and constructors
   - **READY**: The experiment is complete; all computations are done, but the CLI client has not yet been informed.  
   - **COMPLETED**: The experiment is finished, and the CLI client has been notified.
 
+- **groupName (String)**: Specifies a user-defined identifier for grouping related experiments.
+
 <span style="color: red;">**Important:**</span> CLI periodically sends requests to the endpoint `{BASE_URL}/experiment/ready`.  
 If there is an experiment with status **READY**, the CLI is informed, and the status is changed to **COMPLETED** on the server side.
 
@@ -119,6 +121,9 @@ The endpoint accepts a JSON object that must match the `RunExperimentRequest` st
   **Constraints**:  
   - Must be greater than 0.  
 
+- **`groupName`** (String): Name of the group.
+  **Example**: `"group1"`
+
 #### Example Request:
 ```json
 {
@@ -126,15 +131,16 @@ The endpoint accepts a JSON object that must match the `RunExperimentRequest` st
   "algorithm": "NSGA-II",
   "metrics": ["contribution", "spacing"],
   "evaluationNumber": 1000,
-  "experimentIterationNumber": 1
+  "experimentIterationNumber": 1,
+  "groupName": "group1"
 }
 ```
 
 
 ---
 
-### Run Multiple Experiments
-- **URL**: `/experiments/multi`
+### Run Many Different Experiments
+- **URL**: `/experiments/manyDifferent`
 - **Method**: `POST`
 - **Description**: Triggers multiple experiments for combinations of problems and algorithms. Each experiment is executed based on the parameters provided.
 
@@ -158,6 +164,9 @@ The endpoint accepts a JSON object with the following required fields:
   **Minimum Value**: `1`  
   **Default**: No default; must be explicitly provided.
 
+- **`groupName`** (String): Name of the group.
+  **Example**: `"group1"`
+
 #### Example Request:
 ```json
 {
@@ -165,7 +174,8 @@ The endpoint accepts a JSON object with the following required fields:
   "algorithms": ["NSGA-II", "GDE3"],
   "metrics": ["enlapsed-time", "spacing"],
   "evaluationNumber": 1000,
-  "experimentIterationNumber": 2
+  "experimentIterationNumber": 2,
+  "groupName": "group1"
 }
 ```
 ---
@@ -209,13 +219,17 @@ The endpoint accepts a JSON object with the following optional keys:
 - **`metrics`** (List of Strings): Filter experiments by the metrics computed.  
   **Example**: `["elapsed-time", "spacing"]`
 
+- **`groupNames`** (List of Strings): Filter experiments by the group it belongs to.
+  **Example**: `"group1"`
+
 #### Example Request:
 ```json
 {
   "statuses": ["READY", "COMPLETED"],
   "problems": ["UF1"],
   "algorithms": ["NSGA-II"],
-  "metrics": ["spacing"]
+  "metrics": ["spacing"],
+  "groupNames": ["group1", "group2"]
 }
 ```
 
@@ -243,6 +257,8 @@ run <problemName> <algorithm> [options]
 `-e, --evaluations <number>`: The number of evaluations to perform. Defaults to 1000. Example: -e 5000
 
 `-n, --experimentIterationNumber <number>`: The number of iterations for the experiment. Defaults to 1. Example: -n 10
+
+`-g, --groupName <group1>`: Name of the group. Defaults to "". Example: -g group1
 
 
 ---
@@ -280,6 +296,10 @@ Example: -e 5000
 How many times each (problem, algorithm) pair should be repeated (default: 1).
 Example: -n 3
 
+`-g, --groupName <group1>`: 
+Name of the group (default: ""). 
+Example: -g group1
+
 
 #### Parameters
 
@@ -290,7 +310,7 @@ Example: -n 3
 
 - `-m, --metrics <metric1> <metric2> ...`: List of metrics to evaluate (default: `all`).
 - `-e, --evaluations <number>`: The number of evaluations to perform (default: `1000`).
-
+- `-g, --groupName <group1>`: Name of the group (default: `""`).
 
 ---
 
@@ -349,6 +369,10 @@ Statistics type
 Available options: `median, avg, std_dev`.
 Default: median.
 
+`-g, --groupName <group1>`:
+Name of the group
+Default: "".
+
 Example:
 `--statType avg`
 
@@ -375,7 +399,8 @@ Example: --algorithm NSGA-II GDE3
 `-m, --metrics <metric1> <metric2> ...`: Filter experiments by their metrics.
 Example: --metrics spacing
 
-
+`-g, --groupNames <group1> <group2> ...`: Filter experiments by the group it belongs to.
+Example: --groupNames group1
 
 ---
 

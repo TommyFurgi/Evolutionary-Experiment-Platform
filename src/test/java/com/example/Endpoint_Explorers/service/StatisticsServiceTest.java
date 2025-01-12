@@ -68,7 +68,7 @@ class StatisticsServiceTest {
         List<Experiment> experiments = List.of(exp1, exp2);
 
         when(experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
-                eq("nsga-ii"), eq("uf1"), eq(StatusEnum.COMPLETED), any(Timestamp.class), any(Timestamp.class))
+                eq("nsga-ii"), eq("uf1"), eq(StatusEnum.COMPLETED), any(Timestamp.class), any(Timestamp.class), eq(""))
         ).thenReturn(experiments);
 
         //  iteration=100 => index=0, iteration=200 => index=1
@@ -112,7 +112,7 @@ class StatisticsServiceTest {
 
         // when
         Map<String, List<Double>> resultMap = statisticsService.getStatsTimeFromInterval(
-                problemName, algorithm, startStr, endStr, statType, null);
+                problemName, algorithm, startStr, endStr, statType, new ArrayList<>(), "");
 
         // then
         assertTrue(resultMap.containsKey("hypervolume"));
@@ -135,14 +135,14 @@ class StatisticsServiceTest {
         String statType = "AVG";
 
         when(experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
-                anyString(), anyString(), eq(StatusEnum.COMPLETED), any(), any()
+                anyString(), anyString(), eq(StatusEnum.COMPLETED), any(), any(), anyString()
         )).thenReturn(Collections.emptyList());
 
         doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any());
 
         // when & then
         assertThrows(IllegalArgumentException.class, () ->
-                statisticsService.getStatsTimeFromInterval(problemName, algorithm, startStr, endStr, statType, null)
+                statisticsService.getStatsTimeFromInterval(problemName, algorithm, startStr, endStr, statType, null, "")
         );
     }
 
@@ -162,7 +162,7 @@ class StatisticsServiceTest {
         exp.setStatus(StatusEnum.COMPLETED);
 
         when(experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
-                eq("gde3"), eq("dtlz2"), eq(StatusEnum.COMPLETED), any(), any()
+                eq("gde3"), eq("dtlz2"), eq(StatusEnum.COMPLETED), any(), any(), eq("")
         )).thenReturn(List.of(exp));
 
         Metrics m1 = new Metrics();
@@ -181,7 +181,7 @@ class StatisticsServiceTest {
 
         // when
         Map<String, List<Double>> result = statisticsService.getStatsTimeFromInterval(
-                problemName, algorithm, startStr, endStr, statType, null);
+                problemName, algorithm, startStr, endStr, statType, new ArrayList<>(), "");
 
         // then
         assertTrue(result.containsKey("hypervolume"));
@@ -198,7 +198,7 @@ class StatisticsServiceTest {
 
         assertThrows(IllegalArgumentException.class, () ->
                 statisticsService.getStatsTimeFromInterval("UF1", "e-MOEA",
-                        "2024-01-01_00:00:00", "2024-12-31_23:59:59", "AVG", null)
+                        "2024-01-01_00:00:00", "2024-12-31_23:59:59", "AVG", new ArrayList<>(), "")
         );
     }
 
@@ -213,7 +213,7 @@ class StatisticsServiceTest {
         dummyExp.setStatus(StatusEnum.COMPLETED);
         dummyExp.setNumberOfEvaluation(100);
         when(experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
-                anyString(), anyString(), eq(StatusEnum.COMPLETED), any(), any()
+                anyString(), anyString(), eq(StatusEnum.COMPLETED), any(), any(), anyString()
         )).thenReturn(List.of(dummyExp));
 
         doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any());
@@ -223,7 +223,7 @@ class StatisticsServiceTest {
 
         // when
         Map<String, List<Double>> result = statisticsService.getStatsTimeFromInterval(
-                "ZDT3", "NSGA-II", startStr, endStr, "AVG", null
+                "ZDT3", "NSGA-II", startStr, endStr, "AVG", new ArrayList<>(), ""
         );
 
         // then

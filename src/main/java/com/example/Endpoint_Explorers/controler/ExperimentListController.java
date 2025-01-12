@@ -28,11 +28,12 @@ public class ExperimentListController {
             List<String> problems = bodyMap.containsKey("problems") ? bodyMap.get("problems") : new ArrayList<>();
             List<String> algorithms = bodyMap.containsKey("algorithms") ? bodyMap.get("algorithms") : new ArrayList<>();
             List<String> metrics = bodyMap.containsKey("metrics") ? bodyMap.get("metrics") : new ArrayList<>();
+            List<String> groupNames = bodyMap.containsKey("groupNames") ? bodyMap.get("groupNames") : new ArrayList<>();
 
-            log.info("Fetching experiments with filters - Statuses: {}, Problems: {}, Algorithms: {}, Metrics: {}",
-                    statuses, problems, algorithms, metrics);
+            log.info("Fetching experiments with filters - Statuses: {}, Problems: {}, Algorithms: {}, Metrics: {}, Groups {}",
+                    statuses, problems, algorithms, metrics, groupNames);
 
-            List<Experiment> experiments = service.getFilteredExperiments(statuses, problems, algorithms, metrics);
+            List<Experiment> experiments = service.getFilteredExperiments(statuses, problems, algorithms, metrics, groupNames);
             List<ExperimentDto> experimentDtos = dtoMapper.convertToDtoList(experiments);
 
             return ResponseEntity.ok(experimentDtos);

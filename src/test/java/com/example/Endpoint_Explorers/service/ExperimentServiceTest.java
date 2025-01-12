@@ -83,15 +83,16 @@ class ExperimentServiceTest {
         List<String> problems = List.of("UF1");
         List<String> algos = List.of("nsga-ii");
         List<String> metrics = List.of("spacing");
+        List<String> groupNames = List.of("none");
 
         doNothing().when(validator).validateListParams(statuses, problems, algos, metrics);
         when(repository.findFilteredExperiments(
-                anySet(), anySet(), anySet(), anySet()
+                anySet(), anySet(), anySet(), anySet(), anySet()
         )).thenReturn(List.of());
 
         // when
         when(metricsService.parseMetricsName("spacing")).thenReturn("spacing");  // Mocking to return "spacing"
-        List<Experiment> result = experimentService.getFilteredExperiments(statuses, problems, algos, metrics);
+        List<Experiment> result = experimentService.getFilteredExperiments(statuses, problems, algos, metrics, groupNames);
 
         // then
         assertNotNull(result);
@@ -102,7 +103,8 @@ class ExperimentServiceTest {
                 argThat(s -> s.contains("READY") && s.contains("IN_PROGRESS")),
                 argThat(p -> p.contains("uf1")),
                 argThat(a -> a.contains("nsga-ii")),
-                argThat(m -> m.contains("spacing"))
+                argThat(m -> m.contains("spacing")),
+                argThat(g -> g.contains("none"))
         );
     }
 }

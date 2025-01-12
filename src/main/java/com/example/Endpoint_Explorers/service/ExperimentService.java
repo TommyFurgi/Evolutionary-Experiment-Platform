@@ -82,7 +82,8 @@ public class ExperimentService {
                                 algorithm,
                                 request.getMetrics(),
                                 request.getEvaluationNumber(),
-                                request.getExperimentIterationNumber()
+                                request.getExperimentIterationNumber(),
+                                request.getGroupName()
                         );
                         int expId = runExperiment(singleReq);
                         experimentIds.add(expId);
@@ -120,6 +121,8 @@ public class ExperimentService {
     }
 
     private Experiment initializeExperiment(RunExperimentRequest request) {
+        String groupName = request.getGroupName().isEmpty() ? "none" : request.getGroupName();
+
         Experiment experiment = Experiment.builder()
                 .problemName(request.getProblemName().toLowerCase())
                 .algorithm(request.getAlgorithm().toLowerCase())
@@ -127,6 +130,7 @@ public class ExperimentService {
                 .status(StatusEnum.IN_PROGRESS)
                 .datetime(new Timestamp(System.currentTimeMillis()))
                 .metricsList(new ArrayList<>())
+                .groupName(groupName)
                 .build();
 
         Experiment savedExperiment = repository.save(experiment);
@@ -155,7 +159,7 @@ public class ExperimentService {
         return experiments;
     }
 
-    public List<Experiment> getFilteredExperiments(List<String> statuses, List<String> problems, List<String> algorithms, List<String> metrics) {
+    public List<Experiment> getFilteredExperiments(List<String> statuses, List<String> problems, List<String> algorithms, List<String> metrics, List<String> groupNames) {
         validator.validateListParams(statuses, problems, algorithms, metrics);
         List<String> parsedMetrics = metrics.stream()
                 .map(metricsService::parseMetricsName)
@@ -165,8 +169,9 @@ public class ExperimentService {
         Set<String> filteredProblems = convertListToLowerCaseSet(problems);
         Set<String> filteredAlgorithms = convertListToLowerCaseSet(algorithms);
         Set<String> filteredMetrics = convertListToLowerCaseSet(parsedMetrics);
+        Set<String> filteredGroups = (groupNames.isEmpty() || groupNames.get(0).isEmpty()) ? null : new HashSet<>(groupNames);
 
-        return repository.findFilteredExperiments(filteredStatuses, filteredProblems, filteredAlgorithms, filteredMetrics);
+        return repository.findFilteredExperiments(filteredStatuses, filteredProblems, filteredAlgorithms, filteredMetrics, filteredGroups);
     }
 
     private Set<String> convertListToLowerCaseSet(List<String> list) {

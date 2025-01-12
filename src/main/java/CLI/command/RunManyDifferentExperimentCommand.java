@@ -30,6 +30,9 @@ public class RunManyDifferentExperimentCommand implements Runnable {
     @CommandLine.Option(names = {"-n", "--experimentIterationNumber"}, defaultValue = CliDefaults.DEFAULT_EXPERIMENT_ITERATION_NUMBER)
     private Integer experimentIterationNumber;
 
+    @CommandLine.Option(names = {"-g", "--groupName"}, description = "Name of the group (default: none)", defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
+    private String groupName;
+
     @Override
     public void run() {
         ManyDifferentExperimentRequest request = new ManyDifferentExperimentRequest();
@@ -38,6 +41,7 @@ public class RunManyDifferentExperimentCommand implements Runnable {
         request.setMetrics(metrics);
         request.setEvaluationNumber(evaluationNumber);
         request.setExperimentIterationNumber(experimentIterationNumber);
+        request.setGroupName(groupName);
 
         RestTemplate restTemplate = new RestTemplate();
         String url = CliConfig.RUN_MANY_DIFFERENT_EXPERIMENTS_URL;

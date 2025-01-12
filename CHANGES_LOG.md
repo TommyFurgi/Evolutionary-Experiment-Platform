@@ -60,3 +60,7 @@
 - dodanie testow jednostkowych do serwisów
 - dodatenie testow jednostkowych do ExperimentValidator'a
 - update readme
+
+12.01.2025
+- ekperymenty mają nowe pole - grupa
+- możliwe jest filtorwanie ekperymentów po grupie, pobieranie statystyk z ekperymentów należących do danej grupy
