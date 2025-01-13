@@ -25,6 +25,7 @@ public class InteractiveApp implements Runnable {
         cmd.addSubcommand("list", new GetExperimentsListCommand());
         cmd.addSubcommand("getStats", new GetStatsCommand());
         cmd.addSubcommand("runManyDiff", new RunManyDifferentExperimentCommand());
+        cmd.addSubcommand("setGroup", new SetExperimentsGroupCommand());
 
         ScheduledExperimentFetcher puller = new ScheduledExperimentFetcher();
         puller.startRequesting();

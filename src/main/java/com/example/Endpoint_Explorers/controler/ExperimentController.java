@@ -4,6 +4,7 @@ import com.example.Endpoint_Explorers.component.ExperimentDtoMapper;
 import com.example.Endpoint_Explorers.component.ExperimentValidator;
 import com.example.Endpoint_Explorers.model.Experiment;
 import com.example.Endpoint_Explorers.model.ExperimentDto;
+import com.example.Endpoint_Explorers.request.GroupUpdateRequest;
 import com.example.Endpoint_Explorers.request.ManyDifferentExperimentRequest;
 import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import com.example.Endpoint_Explorers.service.ExperimentService;
@@ -77,5 +78,16 @@ public class ExperimentController {
         List<ExperimentDto> experimentDtos = dtoMapper.convertToDtoList(experiments);
         log.debug("Returning {} experiments marked as 'ready'.", experimentDtos.size());
         return ResponseEntity.ok(experimentDtos);
+    }
+
+    @PutMapping("/group")
+    public ResponseEntity<String> updateExperimentGroup(@RequestBody GroupUpdateRequest request) {
+        try {
+            List<Integer> updatedExperimentIds = service.updateGroupForExperiments(request.getExperimentIds(), request.getNewGroupName());
+            log.info("Updated group for experiments: {}. New group name: {}", updatedExperimentIds, request.getNewGroupName());
+            return ResponseEntity.ok(String.format("Group updated successfully for experiments: %s", updatedExperimentIds));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
+        }
     }
 }

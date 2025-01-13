@@ -64,3 +64,6 @@
 12.01.2025
 - ekperymenty mają nowe pole - grupa
 - możliwe jest filtorwanie ekperymentów po grupie, pobieranie statystyk z ekperymentów należących do danej grupy
+
+13.01.2025
+- dodanie komendy do zmiany grupy eksperymentów dla podanej listy id

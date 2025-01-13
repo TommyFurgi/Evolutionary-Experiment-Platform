@@ -182,4 +182,33 @@ public class ExperimentService {
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
     }
+
+    @Transactional
+    public List<Integer> updateGroupForExperiments(List<Integer> experimentIds, String newGroupName) {
+        if (experimentIds == null || experimentIds.isEmpty()) {
+            throw new IllegalArgumentException("Experiment IDs cannot be null or empty");
+        }
+
+        if (newGroupName == null) {
+            throw new IllegalArgumentException("Group name cannot be null");
+        }
+
+        List<Experiment> experiments = repository.findAllById(experimentIds);
+        String groupName = newGroupName.isEmpty() ? "none" : newGroupName;
+
+        if (experiments.isEmpty()) {
+            throw new IllegalArgumentException("No experiments found for the provided IDs");
+        }
+
+        List<Experiment> updatedExperiments = new ArrayList<>();
+        for (Experiment experiment : experiments) {
+            experiment.setGroupName(groupName);
+            updatedExperiments.add(experiment);
+        }
+
+        repository.saveAll(experiments);
+        return updatedExperiments.stream()
+                .map(Experiment::getId)
+                .collect(Collectors.toList());
+    }
 }

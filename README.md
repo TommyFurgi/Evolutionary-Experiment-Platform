@@ -16,7 +16,8 @@ We are able to run experiments with specific problem names, algorithms, metrics 
     - [Run Multiple Experiments](#run-multiple-experiments)
     - [Get Experiment By ID](#get-experiment-by-id)
     - [Get Ready Experiments](#get-ready-experiments)
-    - [Get Experiments  by various parameters](#get-experiments-by-filters)
+    - [Get Experiments by various parameters](#get-experiments-by-filters)
+    - [Set group name for experiments](#set-group-name-for-experiments)
 
 4. [Cli Commands](#cli-commands)
     - [`run`](#run-command)
@@ -24,6 +25,7 @@ We are able to run experiments with specific problem names, algorithms, metrics 
     - [`get`](#get-command)
     - [`getStats`](#getStats-command)
     - [`list`](#list-command)
+    - [`setGroup`](#setGroup-command)
     - [`exit`](#exit-command)
     - [`help`](#help-command)
 5. [Running project](#running-project)
@@ -235,6 +237,29 @@ The endpoint accepts a JSON object with the following optional keys:
 
 ---
 
+### Set group name for experiments
+- **URL**: `/experiments/group`
+- **Method**: `PUT`
+- **Description**: Sets the group for one or more experiments.
+
+#### Request Body:
+The endpoint accepts a JSON object with the following required fields:
+
+- **`experimentIds`** (List of Integer): A list of experiment IDs that need to be updated.  
+  **Example**: `[1, 2, 3]`
+
+- **`groupName`** (String): The new group name to assign to the experiments.  
+  **Example**: `"newGroup"`
+
+#### Example Request:
+```json
+{
+  "experimentIds": [1, 2, 3],
+  "groupName": "newGroup"
+}
+```
+
+---
 
 
 ## Cli Commands
@@ -403,7 +428,24 @@ Example: --metrics spacing
 Example: --groupNames group1
 
 ---
+### `setGroup` command
+**Description**: Sets or updates the group for one or more experiments.
 
+
+#### Usage
+```bash
+setGroup <experimentId1> <experimentId2> ... -g <groupName>
+```
+
+#### Parameters
+`<experimentId1> <experimentId2>`: A list of experiment IDs to be assigned to the specified group.
+Example: 1 2 3
+
+#### Options
+`-g --groupName newName`: The name of the group to which the experiments will be assigned.  
+Example: --groupName newGroup
+
+---
 ### `exit` command
 **Description**: Exits the CLI application.
 

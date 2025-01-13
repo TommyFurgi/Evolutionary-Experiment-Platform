@@ -9,4 +9,5 @@ public class CliConfig {
     public static final String EXPERIMENT_LIST_URL = "http://localhost:8080/experiment-list";
     public static final String STATS_URL = "http://localhost:8080/stats";
     public static final String RUN_MANY_DIFFERENT_EXPERIMENTS_URL = "http://localhost:8080/experiments/manyDifferent";
+    public static final String SET_GROUP_NAME = "http://localhost:8080/experiments/group";
 }

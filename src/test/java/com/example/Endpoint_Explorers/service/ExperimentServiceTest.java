@@ -107,4 +107,46 @@ class ExperimentServiceTest {
                 argThat(g -> g.contains("none"))
         );
     }
+
+    @Test
+    void updateGroupForEmptyExperimentsList() {
+        // given
+        List<Integer> experimentIds = List.of();
+        String newGroupName = "groupA";
+
+        // when & then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            experimentService.updateGroupForExperiments(experimentIds, newGroupName);
+        });
+        assertEquals("Experiment IDs cannot be null or empty", exception.getMessage());
+    }
+
+    @Test
+    void updateGroupForExperimentsList() {
+        // given
+        List<Integer> experimentIds = List.of(1, 2, 3);
+        String newGroupName = "groupA";
+
+        Experiment experiment1 = new Experiment();
+        experiment1.setId(1);
+        Experiment experiment2 = new Experiment();
+        experiment2.setId(2);
+        Experiment experiment3 = new Experiment();
+        experiment3.setId(3);
+
+        when(repository.findAllById(experimentIds)).thenReturn(List.of(experiment1, experiment2, experiment3));
+
+        // when
+        List<Integer> updatedExperimentIds = experimentService.updateGroupForExperiments(experimentIds, newGroupName);
+
+        // then
+        assertEquals(3, updatedExperimentIds.size());
+        assertTrue(updatedExperimentIds.containsAll(experimentIds));
+
+        verify(repository, times(1)).saveAll(anyList());
+        assertEquals(newGroupName, experiment1.getGroupName());
+        assertEquals(newGroupName, experiment2.getGroupName());
+        assertEquals(newGroupName, experiment3.getGroupName());
+    }
+
 }
