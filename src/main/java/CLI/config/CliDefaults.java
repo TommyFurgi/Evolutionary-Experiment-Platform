@@ -1,8 +1,6 @@
 package CLI.config;
 
 public class CliDefaults {
-    private static final CliDefaults INSTANCE = new CliDefaults();
-
     public static final String DEFAULT_STATUS = "";
     public static final String DEFAULT_PROBLEM = "";
     public static final String DEFAULT_ALGORITHM = "";
@@ -15,11 +13,5 @@ public class CliDefaults {
     public static final String DEFAULT_EXPERIMENT_ITERATION_NUMBER = "1";
     public static final String DEFAULT_PLOT_VALUE = "false";
     public static final String DEFAULT_METRIC_NAMES = "none";
-
-    private CliDefaults() {
-    }
-
-    public static CliDefaults CliDefaults() {
-        return INSTANCE;
-    }
+    public static final String DEFAULT_GROUP_VALUE = "";
 }

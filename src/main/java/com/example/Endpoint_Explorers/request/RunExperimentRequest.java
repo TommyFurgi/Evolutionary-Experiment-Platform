@@ -30,17 +30,20 @@ public class RunExperimentRequest {
     @Min(value = 1, message = "Experiment iteration must be greater than 0")
     private Integer experimentIterationNumber;
 
+    private String groupName;
 
     public RunExperimentRequest(
             String problemName,
             String algorithm,
             List<String> metrics,
             Integer evaluationNumber,
-            Integer experimentIterationNumber) {
+            Integer experimentIterationNumber,
+            String groupName) {
         this.problemName = problemName;
         this.algorithm = algorithm;
         this.metrics = metrics;
         this.evaluationNumber = evaluationNumber;
         this.experimentIterationNumber = experimentIterationNumber;
+        this.groupName = groupName;
     }
 }

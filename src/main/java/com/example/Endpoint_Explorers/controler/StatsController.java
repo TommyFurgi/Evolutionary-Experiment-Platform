@@ -28,11 +28,13 @@ public class StatsController {
                                       @RequestParam("endDateTime") String end,
                                       @RequestParam("statType") String statType,
                                       @RequestParam("isPlot") String isPlot,
-                                      @RequestParam(value = "metricsNamesToPlot", required = false) List<String> metricsNames) {
+                                      @RequestParam(value = "metricsNamesToPlot", required = false) List<String> metricsNames,
+                                      @RequestParam("groupName") String groupName) {
 
         try {
+            System.out.println(groupName);
             if (Boolean.parseBoolean(isPlot)) {
-                Map<String, List<Double>> metricsResults = service.getStatsTimeFromInterval(problemName, algorithm, start, end, statType, metricsNames);
+                Map<String, List<Double>> metricsResults = service.getStatsTimeFromInterval(problemName, algorithm, start, end, statType, metricsNames, groupName);
                 List<FileDetails> files = FileContentConverter.createFilesDetails(service.getFileNamePaths());
 
                 return ResponseEntity.ok(new MetricsAndFiles(metricsResults, files));
@@ -43,7 +45,8 @@ public class StatsController {
                         start,
                         end,
                         statType,
-                        new ArrayList<>(List.of("none")));
+                        new ArrayList<>(List.of("none")),
+                        groupName);
 
                 return ResponseEntity.ok(new MetricsAndFiles(metricsResults, null));
             }

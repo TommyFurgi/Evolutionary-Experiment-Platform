@@ -8,6 +8,7 @@ public record ExperimentDto(
         String algorithm,
         int numberOfEvaluation,
         StatusEnum status,
-        Timestamp datetime
+        Timestamp datetime,
+        String groupName
 ) {
 }

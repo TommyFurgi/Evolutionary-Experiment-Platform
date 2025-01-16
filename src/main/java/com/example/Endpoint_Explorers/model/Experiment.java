@@ -38,4 +38,7 @@ public class Experiment {
 
     @OneToMany(mappedBy = "experiment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Metrics> metricsList;
+
+    @Column
+    private String groupName;
 }

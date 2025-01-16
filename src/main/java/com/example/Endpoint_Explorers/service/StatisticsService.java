@@ -38,7 +38,8 @@ public class StatisticsService {
     private Timestamp startDate;
     private Timestamp endDate;
 
-    public Map<String, List<Double>> getStatsTimeFromInterval(String problemName, String algorithm, String start, String end, String statType, List<String> metricsNames) {
+    public Map<String, List<Double>> getStatsTimeFromInterval(String problemName, String algorithm, String start,
+                                                              String end, String statType, List<String> metricsNames, String groupName) {
         StatEnum enumStatType = StatEnum.extractStatsType(statType);
 
         TimeRange timestamps = parseTimestamps(start, end);
@@ -47,7 +48,7 @@ public class StatisticsService {
 
         validator.validateStatsParams(problemName, algorithm, startDate, endDate);
 
-        List<Experiment> experiments = extractExperiments(algorithm, problemName, startDate, endDate);
+        List<Experiment> experiments = extractExperiments(algorithm, problemName, startDate, endDate, groupName);
 
         int maxPossibleEvaluation = getMaxPossibleEvaluation(experiments);
 
@@ -76,9 +77,9 @@ public class StatisticsService {
         return new TimeRange(startDate, endDate);
     }
 
-    private List<Experiment> extractExperiments(String algorithm, String problemName, Timestamp startDate, Timestamp endDate) {
+    private List<Experiment> extractExperiments(String algorithm, String problemName, Timestamp startDate, Timestamp endDate, String groupName) {
         List<Experiment> experiments = experimentRepository.findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
-                algorithm.toLowerCase(), problemName.toLowerCase(), StatusEnum.COMPLETED, startDate, endDate);
+                algorithm.toLowerCase(), problemName.toLowerCase(), StatusEnum.COMPLETED, startDate, endDate, groupName);
 
         if (experiments.isEmpty()) {
             throw new IllegalArgumentException("No experiments found in the specified time interval.");

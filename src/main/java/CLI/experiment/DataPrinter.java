@@ -32,6 +32,7 @@ public class DataPrinter {
 
         addRowsToTable(table, sortedIterations, iterationToMetricsMap, uniqueMetricNames);
 
+        System.out.println();
         System.out.println(table);
     }
 
@@ -98,9 +99,9 @@ public class DataPrinter {
     }
 
     public static void printStats(String problemName, String algorithm, String startDateTime,
-                                  String endDateTime, String statType, Map<String, List<Double>> metricsMap) {
+                                  String endDateTime, String statType, Map<String, List<Double>> metricsMap, String groupName) {
 
-        printStatsConfiguration(problemName, algorithm, startDateTime, endDateTime, statType);
+        printStatsConfiguration(problemName, algorithm, startDateTime, endDateTime, statType, groupName);
 
         int maxEvaluations = calculateMaxEvaluations(metricsMap);
 
@@ -108,13 +109,14 @@ public class DataPrinter {
         printStatsScore(metricsMap, maxEvaluations);
     }
 
-    private static void printStatsConfiguration(String problemName, String algorithm, String startDateTime, String endDateTime, String statType) {
+    private static void printStatsConfiguration(String problemName, String algorithm, String startDateTime, String endDateTime, String statType, String groupName) {
         System.out.println("\nStatistics for the following input:");
         System.out.print("Problem: " + problemName);
         System.out.print(", Algorithm: " + algorithm);
         System.out.print(", Start DateTime: " + startDateTime);
         System.out.print(", End DateTime: " + (endDateTime.isEmpty() ? "Current Time" : endDateTime));
         System.out.println(", Stat Type: " + statType);
+        System.out.println(", Group Name: " + groupName);
         System.out.println("_".repeat(FLOOR_AMOUNT));
     }
 
@@ -150,17 +152,19 @@ public class DataPrinter {
     }
 
     public static void displayExperimentsList(List<Experiment> experiments) {
-        System.out.printf("%-5s %-15s %-15s %-15s %-15s %-25s%n", "ID", "Evaluations", "Algorithm", "Problem", "Status", "Date");
+        System.out.println();
+        System.out.printf("%-5s %-15s %-15s %-15s %-15s %-25s %-20s%n", "ID", "Evaluations", "Algorithm", "Problem", "Status", "Date", "Group");
         System.out.println("_".repeat(FLOOR_AMOUNT));
 
         for (Experiment experiment : experiments) {
-            System.out.printf("%-5d %-15d %-15s %-15s %-15s %-25s%n",
+            System.out.printf("%-5d %-15d %-15s %-15s %-15s %-25s %-20s%n",
                     experiment.id(),
                     experiment.numberOfEvaluation(),
                     experiment.algorithm(),
                     experiment.problemName(),
                     experiment.status(),
-                    experiment.datetime());
+                    experiment.datetime(),
+                    experiment.groupName());
         }
     }
 }

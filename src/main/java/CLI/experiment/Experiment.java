@@ -12,7 +12,8 @@ public record Experiment(
         @JsonProperty("numberOfEvaluation") int numberOfEvaluation,
         @JsonProperty("status") String status,
         @JsonProperty("datetime") Timestamp datetime,
-        @JsonProperty("metricsList") List<Metrics> metrics
+        @JsonProperty("metricsList") List<Metrics> metrics,
+        @JsonProperty("groupName") String groupName
 ) {
     @Override
     public String toString() {
@@ -22,6 +23,7 @@ public record Experiment(
                 ", algorithm='" + algorithm + '\'' +
                 ", numberOfEvaluation=" + numberOfEvaluation +
                 ", datetime=" + datetime +
-                ", status='" + status + '\'';
+                ", status='" + status +
+                ", groupName='" + groupName + '\'';
     }
 }
