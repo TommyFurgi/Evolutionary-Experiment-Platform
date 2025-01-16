@@ -44,3 +44,7 @@ Thumbs.db
 *.swp
 *.swo
 *.bak
+
+#Ignore statistics files
+**/serverResources/
+**/clientResources/

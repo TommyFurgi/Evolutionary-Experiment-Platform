@@ -4,6 +4,8 @@ import com.example.Endpoint_Explorers.component.CsvContentConverter;
 import com.example.Endpoint_Explorers.component.FileContentConverter;
 import com.example.Endpoint_Explorers.model.FileDetails;
 import com.example.Endpoint_Explorers.model.MetricsAndFiles;
+import com.example.Endpoint_Explorers.service.CsvService;
+import com.example.Endpoint_Explorers.service.PlotService;
 import com.example.Endpoint_Explorers.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +23,8 @@ import java.util.Map;
 @RequestMapping("/stats")
 @RequiredArgsConstructor
 public class StatsController {
-    private final StatisticsService service;
+
+    private final StatisticsService statisticsService;
 
     @GetMapping
     public ResponseEntity<?> getStats(@RequestParam("problemName") String problemName,
@@ -34,23 +38,23 @@ public class StatsController {
                                       @RequestParam("groupName") String groupName) {
 
         try {
-            List<FileDetails> files = new ArrayList<>();
-            Map<String, List<Double>> metricsResults = service.getStatsTimeFromInterval(problemName, algorithm, start, end, statType, metricsNames, groupName);
-            if (Boolean.parseBoolean(isPlot)) {
-                files.addAll(FileContentConverter.createFilesDetails(service.getFileNamePaths()));
-                return ResponseEntity.ok(new MetricsAndFiles(metricsResults, files));
-            }
-            if (Boolean.parseBoolean(isCsv)) {
-                FileDetails csvFile = CsvContentConverter.createCsvFile(
-                        metricsResults,
-                        problemName,
-                        algorithm,
-                        start,
-                        end
-                );
-                files.add(csvFile);
-            }
-            return ResponseEntity.ok(new MetricsAndFiles(metricsResults, files));
+            // Konwersja isPlot, isCsv na boolean
+            boolean plot = Boolean.parseBoolean(isPlot);
+            boolean csv  = Boolean.parseBoolean(isCsv);
+
+            // Wywołujemy JEDNĄ metodę w serwisie, która zrobi wszystko.
+            MetricsAndFiles result = statisticsService.getStats(
+                    problemName,
+                    algorithm,
+                    start,
+                    end,
+                    statType,
+                    metricsNames,
+                    groupName,
+                    plot,
+                    csv
+            );
+            return ResponseEntity.ok(result);
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());

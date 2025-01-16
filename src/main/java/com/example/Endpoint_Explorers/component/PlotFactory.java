@@ -1,5 +1,6 @@
 package com.example.Endpoint_Explorers.component;
 
+import com.example.Endpoint_Explorers.utils.DirectoryUtils;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.XYChart;
 import org.knowm.xchart.XYChartBuilder;
@@ -22,7 +23,7 @@ public class PlotFactory {
             List<Double> values) {
 
         checkInputData(iterations, values);
-        checkDirectoryExists();
+        DirectoryUtils.ensureDirectoryExists(BASE_PATH);
         XYChart chart = new XYChartBuilder()
                 .width(800)
                 .height(800)
@@ -39,13 +40,6 @@ public class PlotFactory {
     private static void checkInputData(List<Integer> iterations, List<Double> values) {
         if (iterations == null || values == null || iterations.size() != values.size()) {
             throw new IllegalArgumentException("Iterations and Values cannot be empty or have a different size.");
-        }
-    }
-
-    private static void checkDirectoryExists() {
-        File dir = new File(BASE_PATH);
-        if (!dir.exists() && !dir.mkdirs()) {
-            System.out.println("There is a problem with directory creation: " + BASE_PATH);
         }
     }
 
