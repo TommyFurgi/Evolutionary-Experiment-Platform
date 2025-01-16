@@ -1,5 +1,6 @@
 package com.example.Endpoint_Explorers.controler;
 
+import com.example.Endpoint_Explorers.component.CsvContentConverter;
 import com.example.Endpoint_Explorers.component.FileContentConverter;
 import com.example.Endpoint_Explorers.model.FileDetails;
 import com.example.Endpoint_Explorers.model.MetricsAndFiles;
@@ -28,28 +29,29 @@ public class StatsController {
                                       @RequestParam("endDateTime") String end,
                                       @RequestParam("statType") String statType,
                                       @RequestParam("isPlot") String isPlot,
+                                      @RequestParam("isCsv") String isCsv,
                                       @RequestParam(value = "metricsNamesToPlot", required = false) List<String> metricsNames,
                                       @RequestParam("groupName") String groupName) {
 
         try {
-            System.out.println(groupName);
+            List<FileDetails> files = new ArrayList<>();
+            Map<String, List<Double>> metricsResults = service.getStatsTimeFromInterval(problemName, algorithm, start, end, statType, metricsNames, groupName);
             if (Boolean.parseBoolean(isPlot)) {
-                Map<String, List<Double>> metricsResults = service.getStatsTimeFromInterval(problemName, algorithm, start, end, statType, metricsNames, groupName);
-                List<FileDetails> files = FileContentConverter.createFilesDetails(service.getFileNamePaths());
-
+                files.addAll(FileContentConverter.createFilesDetails(service.getFileNamePaths()));
                 return ResponseEntity.ok(new MetricsAndFiles(metricsResults, files));
-            } else {
-                Map<String, List<Double>> metricsResults = service.getStatsTimeFromInterval(
+            }
+            if (Boolean.parseBoolean(isCsv)) {
+                FileDetails csvFile = CsvContentConverter.createCsvFile(
+                        metricsResults,
                         problemName,
                         algorithm,
                         start,
-                        end,
-                        statType,
-                        new ArrayList<>(List.of("none")),
-                        groupName);
-
-                return ResponseEntity.ok(new MetricsAndFiles(metricsResults, null));
+                        end
+                );
+                files.add(csvFile);
             }
+            return ResponseEntity.ok(new MetricsAndFiles(metricsResults, files));
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
         } catch (Exception e) {
