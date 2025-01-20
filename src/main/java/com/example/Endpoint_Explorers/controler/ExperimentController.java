@@ -11,10 +11,12 @@ import com.example.Endpoint_Explorers.service.ExperimentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @RestController
@@ -90,4 +92,34 @@ public class ExperimentController {
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteExperimentById(@PathVariable int id) {
+        log.info("Deleting experiment with ID: {}", id);
+        try {
+            int deletedId = service.deleteExperimentById(id);
+            return ResponseEntity.ok("Experiment with ID " + deletedId + " was deleted.");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body("Error while deleting experiment: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/group/{groupName}")
+    public ResponseEntity<String> deleteExperimentsByGroup(@PathVariable String groupName) {
+        log.info("Deleting experiments for group: {}", groupName);
+        try {
+            int count = service.deleteExperimentsByGroup(groupName);
+            if (count == 0) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(count + " experiments deleted for group '" + groupName + "'");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body("Error while deleting experiments by group: " + e.getMessage());
+        }
+    }
+
 }
