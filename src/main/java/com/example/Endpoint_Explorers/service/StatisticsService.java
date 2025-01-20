@@ -1,13 +1,7 @@
 package com.example.Endpoint_Explorers.service;
 
-import com.example.Endpoint_Explorers.component.ExperimentObservableFactory;
-import com.example.Endpoint_Explorers.component.ExperimentValidator;
-import com.example.Endpoint_Explorers.component.PlotFactory;
-import com.example.Endpoint_Explorers.component.StatisticsCalculator;
-import com.example.Endpoint_Explorers.model.Experiment;
-import com.example.Endpoint_Explorers.model.Metrics;
-import com.example.Endpoint_Explorers.model.StatEnum;
-import com.example.Endpoint_Explorers.model.StatusEnum;
+import com.example.Endpoint_Explorers.component.*;
+import com.example.Endpoint_Explorers.model.*;
 import com.example.Endpoint_Explorers.repository.ExperimentRepository;
 import com.example.Endpoint_Explorers.repository.MetricsRepository;
 import lombok.Getter;
@@ -32,16 +26,69 @@ public class StatisticsService {
     private final MetricsRepository metricsRepository;
     private final StatisticsCalculator statisticsCalculator;
     private final ExperimentValidator validator;
+    private final PlotService plotService;
+    private final CsvService csvService;
     private Map<String, List<Double>> resultMetricsMap;
     @Getter
-    private List<String> fileNamePaths = new ArrayList<>();
     private Timestamp startDate;
+    @Getter
     private Timestamp endDate;
 
-    public Map<String, List<Double>> getStatsTimeFromInterval(String problemName, String algorithm, String start,
-                                                              String end, String statType, List<String> metricsNames, String groupName) {
-        StatEnum enumStatType = StatEnum.extractStatsType(statType);
+    public MetricsAndFiles getStats(String problemName,
+                                    String algorithm,
+                                    String start,
+                                    String end,
+                                    String statType,
+                                    List<String> metricsNames,
+                                    String groupName,
+                                    boolean isPlot,
+                                    boolean isCsv) {
 
+        Map<String, List<Double>> metricsResults = getStatsTimeFromInterval(
+                problemName, algorithm, start, end, statType, metricsNames, groupName
+        );
+
+        List<FileDetails> files = new ArrayList<>();
+
+        if (isPlot) {
+            int maxIteration = getMaxIteration(metricsResults);
+            List<Integer> iterations = createIterations(maxIteration);
+
+            List<String> plotPaths = plotService.generatePlots(
+                    metricsResults,
+                    metricsNames,
+                    algorithm,
+                    problemName,
+                    startDate,
+                    endDate,
+                    iterations
+            );
+            files.addAll(FileContentConverter.createFilesDetails(plotPaths));
+        }
+
+        if (isCsv) {
+            FileDetails csvFile = csvService.createCsv(
+                    metricsResults,
+                    problemName,
+                    algorithm,
+                    start,
+                    end
+            );
+            files.add(csvFile);
+        }
+
+        return new MetricsAndFiles(metricsResults, files);
+    }
+
+    public Map<String, List<Double>> getStatsTimeFromInterval(
+            String problemName,
+            String algorithm,
+            String start,
+            String end,
+            String statType,
+            List<String> metricsNames,
+            String groupName
+    ) {
         TimeRange timestamps = parseTimestamps(start, end);
         startDate = timestamps.start;
         endDate = timestamps.end;
@@ -49,18 +96,15 @@ public class StatisticsService {
         validator.validateStatsParams(problemName, algorithm, startDate, endDate);
 
         List<Experiment> experiments = extractExperiments(algorithm, problemName, startDate, endDate, groupName);
-
         int maxPossibleEvaluation = getMaxPossibleEvaluation(experiments);
-
         List<Metrics> metricsList = getMetricsList(experiments, maxPossibleEvaluation);
 
         int maxIteration = maxPossibleEvaluation / ExperimentObservableFactory.getFrequency();
-
         Map<String, List<List<Float>>> metricsMap = createMetricsMap(metricsList, maxIteration);
 
+        StatEnum enumStatType = StatEnum.extractStatsType(statType);
         createResultMetricsMap(metricsMap, maxIteration, enumStatType);
 
-        generatePlot(metricsNames, algorithm, problemName, createIterations(maxIteration));
         return resultMetricsMap;
     }
 
@@ -139,7 +183,8 @@ public class StatisticsService {
         }
     }
 
-    private List<Integer> createIterations(int maxIteration) {
+    public List<Integer> createIterations(int maxIteration) {
+
         List<Integer> iterations = new ArrayList<>();
         int frequency = ExperimentObservableFactory.getFrequency();
         for (int i = 1; i <= maxIteration; i++) {
@@ -147,22 +192,11 @@ public class StatisticsService {
         }
         return iterations;
     }
-
-    public void generatePlot(List<String> metricsNames, String algorithmName, String problemName, List<Integer> iterations) {
-        fileNamePaths = new ArrayList<>();
-        if (metricsNames.size() == 1 && metricsNames.getFirst().equals("all")) {
-            for (String key : resultMetricsMap.keySet()) {
-                String plotPath = PlotFactory.createPlot(key, algorithmName, problemName, startDate, endDate, iterations, resultMetricsMap.get(key));
-                fileNamePaths.add(plotPath);
-            }
-        } else if (metricsNames.size() != 1) {
-            for (String key : metricsNames) {
-                String plotPath = PlotFactory.createPlot(key, algorithmName, problemName, startDate, endDate, iterations, resultMetricsMap.get(key));
-                fileNamePaths.add(plotPath);
-            }
-        } else if (!metricsNames.getFirst().equals("none")) {
-            String plotPath = PlotFactory.createPlot(metricsNames.getFirst(), algorithmName, problemName, startDate, endDate, iterations, resultMetricsMap.get(metricsNames.getFirst()));
-            fileNamePaths.add(plotPath);
+    private int getMaxIteration(Map<String, List<Double>> metricsResults) {
+        if (!metricsResults.isEmpty()) {
+            String firstMetric = metricsResults.keySet().iterator().next();
+            return metricsResults.get(firstMetric).size();
         }
+        return 0;
     }
 }

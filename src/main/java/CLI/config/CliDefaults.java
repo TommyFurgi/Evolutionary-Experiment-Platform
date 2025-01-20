@@ -12,6 +12,7 @@ public class CliDefaults {
     public static final String DEFAULT_EVALUATION_NUMBER = "1000";
     public static final String DEFAULT_EXPERIMENT_ITERATION_NUMBER = "1";
     public static final String DEFAULT_PLOT_VALUE = "false";
+    public static final String DEFAULT_CSV_VALUE = "false";
     public static final String DEFAULT_METRIC_NAMES = "none";
     public static final String DEFAULT_GROUP_VALUE = "";
 }

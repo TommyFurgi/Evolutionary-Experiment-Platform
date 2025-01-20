@@ -59,6 +59,13 @@ public class GetStatsCommand implements Runnable {
     private String isPlot;
 
     @CommandLine.Option(
+            names = {"-c", "--csv"},
+            description = "Save data to CSV (true if specified, false otherwise)",
+            defaultValue = CliDefaults.DEFAULT_CSV_VALUE
+    )
+    private String isCsv;
+
+    @CommandLine.Option(
             names = {"-m", "--metricsNameToPlot"},
             description = "Specify one, multiple metric names, or use 'all' to select all metrics.",
             defaultValue = CliDefaults.DEFAULT_METRIC_NAMES,
@@ -89,6 +96,7 @@ public class GetStatsCommand implements Runnable {
                 .queryParam("endDateTime", result.end().format(formatter))
                 .queryParam("statType", statType)
                 .queryParam("isPlot", isPlot)
+                .queryParam("isCsv", isCsv)
                 .queryParam("metricsNamesToPlot", metricsNamesToPlot)
                 .queryParam("groupName", groupName);
 
@@ -126,7 +134,7 @@ public class GetStatsCommand implements Runnable {
             MetricsAndFiles metricsAndFiles = objectMapper.readValue(response, new TypeReference<>() {
             });
             DataPrinter.printStats(problemName, algorithm, startDateTime, endDateTime, statType, metricsAndFiles.getMetrics(), groupName);
-            if (Boolean.parseBoolean(isPlot)) {
+            if (Boolean.parseBoolean(isPlot) || Boolean.parseBoolean(isCsv)) {
                 FilesSaver.saveFiles(metricsAndFiles.getFiles());
             }
 
