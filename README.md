@@ -17,7 +17,10 @@ We are able to run experiments with specific problem names, algorithms, metrics 
     - [Get Experiment By ID](#get-experiment-by-id)
     - [Get Ready Experiments](#get-ready-experiments)
     - [Get Experiments by various parameters](#get-experiments-by-filters)
-    - [Set group name for experiments](#set-group-name-for-experiments)
+    - [Set Group Name For Experiments](#set-group-name-for-experiments)
+    - [Delete The Experiment By ID](#deletes-experiments-by-id)
+    - [Delete Experiments By Group Name](#deletes-experiments-by-group-name)
+    - [Get Statistics](#get-statistics)
 
 4. [Cli Commands](#cli-commands)
     - [`run`](#run-command)
@@ -28,6 +31,7 @@ We are able to run experiments with specific problem names, algorithms, metrics 
     - [`setGroup`](#setGroup-command)
     - [`exit`](#exit-command)
     - [`help`](#help-command)
+    - [`delete`](#delete-command)
 5. [Running project](#running-project)
 6. [Example usage](#example-usage)
 7. [Authors](#authors)
@@ -237,7 +241,7 @@ The endpoint accepts a JSON object with the following optional keys:
 
 ---
 
-### Set group name for experiments
+### Set Group Name For Experiments
 - **URL**: `/experiments/group`
 - **Method**: `PUT`
 - **Description**: Sets the group for one or more experiments.
@@ -261,6 +265,66 @@ The endpoint accepts a JSON object with the following required fields:
 
 ---
 
+### Deletes Experiments By ID
+- **URL**: `/experiments/{id}`
+- **Method**: `DELETE`
+- **Description**: Deletes the experiment associated with the provided id
+- **Path Parameter**:
+    - `id` (Integer): The ID of the experiment.
+
+---
+
+### Deletes Experiments By Group Name
+- **URL**: `/experiments/group/{groupName}`
+- **Method**: `DELETE`
+- **Description**: Deletes all experiments associated with the specified group name.
+- **Path Parameter**:
+    - `groupName` (String): The name of the group whose experiments need to be deleted.
+
+---
+### Get Statistics
+- **URL**: `/stats`
+- **Method**: `GET`
+- **Description**: Retrieves statistical data for a specified problem and algorithm within a given time range. Optionally, it generates a plot or CSV file based on the request.
+
+
+
+#### Query Parameters:
+- **`problemName`** (String, Required): Name of the optimization problem.  
+  **Example**: `"UF1"`
+
+- **`algorithm`** (String, Required): Name of the algorithm used for the problem.  
+  **Example**: `"NSGA-II"`
+
+- **`startDateTime`** (String, Required): Start of the time range in ISO 8601 format.  
+  **Example**: `"2025-01-01T00:00:00"`
+
+- **`endDateTime`** (String, Required): End of the time range in ISO 8601 format.  
+  **Example**: `"2025-01-07T23:59:59"`
+
+- **`statType`** (String, Required): Type of statistic to retrieve.  
+  **Example**: `"summary"`
+
+- **`isPlot`** (String, Required): Boolean indicating if a plot should be generated (`"true"` or `"false"`).  
+  **Example**: `"true"`
+
+- **`isCsv`** (String, Required): Boolean indicating if the results should be exported as a CSV file (`"true"` or `"false"`).  
+  **Example**: `"false"`
+
+- **`metricsNamesToPlot`** (List of Strings, Optional): Names of the metrics to include in the plot (if `isPlot` is `true`).  
+  **Example**: `["elapsed-time", "spacing"]`
+
+- **`groupName`** (String, Required): Name of the group associated with the experiments.  
+  **Example**: `"group1"`
+
+---
+
+#### Example Request:
+```http
+GET /stats?problemName=UF1&algorithm=NSGA-II&startDateTime=2025-01-01T00:00:00&endDateTime=2025-01-07T23:59:59&statType=summary&isPlot=true&isCsv=false&metricsNamesToPlot=elapsed-time,spacing&groupName=group1
+
+
+---
 
 ## Cli Commands
 
@@ -398,6 +462,14 @@ Default: median.
 Name of the group
 Default: "".
 
+`-p, --plot <true/false>`:
+Whether to plot the results
+Default: "false".
+
+`-c, --csv <true/false>`:
+Whether to create results in csv file
+Default: "false".
+
 Example:
 `--statType avg`
 
@@ -472,6 +544,26 @@ help
 - `[command]`: one of the avaiable commands in application for example `run` or `get`
 
 
+
+### `delete` command
+**Description**: Description: Deletes an experiment (or a group of experiments) based on the ID or group name.
+
+#### Usage
+To delete a single experiment (by ID):
+```bash
+delete <ID>
+```
+To delete all experiments within a specific group:
+
+```bash
+delete --group <GROUP_NAME>
+```
+#### Parameters
+
+`<ID or GROUP_NAME>`: If you don't use the --group option, the value is interpreted as the experiment ID (an integer).
+If you provide the --group option, the value is treated as the group name.
+
+`-g, --group`:Enables deletion by group name (disabled by default – expects an ID instead).
 
 ---
 
@@ -572,6 +664,20 @@ getStats UF1 e-MOEA
 getStats UF1 e-MOEA -a std_dev
 ```
 
+**You can also generate plots or csv file of the statistics of completed experiments:**
+```bash
+getStats UF1 e-MOEA -p true
+
+getStats UF1 e-MOEA -c true
+
+getStats UF1 e-MOEA -p true -c true
+```
+
+**To specify metrics for plots and csv files of the statistics**
+```bash
+getStats UF1 e-MOEA -p true -c true -m spacing contribution
+```
+
 **To specify a start date for the included experiments: (default 2024-01-01_00:00:00)**
 
 ```bash
@@ -611,6 +717,15 @@ list -m spacing contribution elapsed-time
 ```bash
 list -s COMPLETED -p UF1 -a NSGA-II -m spacing
 ```
+**You can create and delete experiments and its metrics by using delete command**
+```bash
+run uf1 e-moea -g grupa1
+run uf2 e-moea -g grupa1
+run uf3 e-moea -g grupa1
+
+delete --group grupa1
+```
+
 
 
 **You can try other problems**
