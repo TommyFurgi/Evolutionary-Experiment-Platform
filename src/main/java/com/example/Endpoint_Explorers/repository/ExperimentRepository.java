@@ -43,4 +43,6 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
             @Param("algorithms") Set<String> algorithms,
             @Param("metrics") Set<String> metrics,
             @Param("groups") Set<String> groups);
+
+    List<Experiment> findByGroupName(String groupName);
 }

@@ -211,4 +211,22 @@ public class ExperimentService {
                 .map(Experiment::getId)
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public int deleteExperimentById(int id) {
+        Experiment experiment = repository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Experiment with id " + id + " not found"));
+        repository.delete(experiment);
+        return id;
+    }
+
+    @Transactional
+    public int deleteExperimentsByGroup(String groupName) {
+        List<Experiment> experiments = repository.findByGroupName(groupName);
+        int count = experiments.size();
+        if (count > 0) {
+            repository.deleteAll(experiments);
+        }
+        return count;
+    }
 }
