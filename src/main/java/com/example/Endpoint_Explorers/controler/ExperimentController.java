@@ -85,8 +85,8 @@ public class ExperimentController {
     @PutMapping("/group")
     public ResponseEntity<String> updateExperimentGroup(@RequestBody GroupUpdateRequest request) {
         try {
-            List<Integer> updatedExperimentIds = service.updateGroupForExperiments(request.getExperimentIds(), request.getNewGroupName());
-            log.info("Updated group for experiments: {}. New group name: {}", updatedExperimentIds, request.getNewGroupName());
+            List<Integer> updatedExperimentIds = service.updateGroupForExperiments(request.experimentIds(), request.newGroupName());
+            log.info("Updated group for experiments: {}. New group name: {}", updatedExperimentIds, request.newGroupName());
             return ResponseEntity.ok(String.format("Group updated successfully for experiments: %s", updatedExperimentIds));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
@@ -113,7 +113,8 @@ public class ExperimentController {
         try {
             int count = service.deleteExperimentsByGroup(groupName);
             if (count == 0) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("No experiments found for group '" + groupName + "'.");
             }
             return ResponseEntity.ok(count + " experiments deleted for group '" + groupName + "'");
         } catch (Exception e) {

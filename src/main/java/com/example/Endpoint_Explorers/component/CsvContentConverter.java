@@ -5,33 +5,31 @@ import java.util.List;
 import java.util.Map;
 
 public class CsvContentConverter {
+    private static final int STEP_SIZE = 100;
 
-    public static String buildCsvContent(
-            Map<String, List<Double>> metricsMap
-    ) {
+    public static String buildCsvContent(Map<String, List<Double>> metricsMap) {
         List<String> metricNames = new ArrayList<>(metricsMap.keySet());
-        StringBuilder sb = new StringBuilder();
-        sb.append("NFE");
-        for (String metricName : metricNames) {
-            sb.append(";").append(metricName);
-        }
-        sb.append("\n");
-        int rowCount = 0;
-        if (!metricNames.isEmpty()) {
-            rowCount = metricsMap.get(metricNames.get(0)).size();
-        }
+        StringBuilder csvBuilder = new StringBuilder();
 
-        for (int i = 0; i < rowCount; i++) {
-            int nfeValue = (i + 1) * 100;
-            sb.append(nfeValue);
+        csvBuilder.append("NFE");
+        for (String metricName : metricNames) {
+            csvBuilder.append(";").append(metricName);
+        }
+        csvBuilder.append("\n");
+
+        int numberOfRows = metricNames.isEmpty() ? 0 : metricsMap.get(metricNames.get(0)).size();
+
+        for (int rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
+            int nfeValue = (rowIndex + 1) * STEP_SIZE;
+            csvBuilder.append(nfeValue);
 
             for (String metricName : metricNames) {
                 List<Double> values = metricsMap.get(metricName);
-                Double value = (i < values.size()) ? values.get(i) : null;
-                sb.append(";").append(value != null ? value : "");
+                Double value = (rowIndex < values.size()) ? values.get(rowIndex) : null;
+                csvBuilder.append(";").append(value != null ? value : "");
             }
-            sb.append("\n");
+            csvBuilder.append("\n");
         }
-        return sb.toString();
+        return csvBuilder.toString();
     }
 }
