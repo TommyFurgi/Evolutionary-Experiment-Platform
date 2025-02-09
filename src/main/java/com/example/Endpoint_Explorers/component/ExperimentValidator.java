@@ -62,10 +62,12 @@ public class ExperimentValidator {
     }
 
 
-    public void validateStatsParams(String problemName, String algorithm, Timestamp startDate, Timestamp endDate) {
+    public void validateStatsParams(String problemName, String algorithm, Timestamp startDate, Timestamp endDate, List<String> metrics) {
         validateProblemName(problemName);
         validateAlgorithm(algorithm);
         validateDates(startDate, endDate);
+        if (!metrics.isEmpty() && !metrics.get(0).equals("none"))
+            this.validateMetrics(metrics);
     }
 
     public void validateListParams(List<String> statuses, List<String> problemName, List<String> algorithm, List<String> metrics) {

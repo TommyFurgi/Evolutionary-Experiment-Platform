@@ -10,6 +10,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,7 +22,9 @@ import picocli.CommandLine;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @CommandLine.Command(name = "getStats", description = "Get experiment stats from server")
 public class GetStatsCommand implements Runnable {
@@ -53,23 +59,21 @@ public class GetStatsCommand implements Runnable {
 
     @CommandLine.Option(
             names = {"-p", "--plot"},
-            description = "Plot metrics (true if specified, false otherwise)",
-            defaultValue = CliDefaults.DEFAULT_PLOT_VALUE
+            description = "Plot metrics (true if specified, false otherwise)"
     )
-    private String isPlot;
+    private boolean isPlot;
 
     @CommandLine.Option(
             names = {"-c", "--csv"},
-            description = "Save data to CSV (true if specified, false otherwise)",
-            defaultValue = CliDefaults.DEFAULT_CSV_VALUE
+            description = "Save data to CSV (true if specified, false otherwise)"
     )
-    private String isCsv;
+    private boolean isCsv;
 
     @CommandLine.Option(
             names = {"-m", "--metricsNameToPlot"},
             description = "Specify one, multiple metric names, or use 'all' to select all metrics.",
             defaultValue = CliDefaults.DEFAULT_METRIC_NAMES,
-            split = ","
+            arity = "1..*"
     )
     private List<String> metricsNamesToPlot;
 
@@ -89,19 +93,20 @@ public class GetStatsCommand implements Runnable {
         RestTemplate restTemplate = new RestTemplate();
         String statsUrl = CliConfig.STATS_URL;
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(statsUrl)
-                .queryParam("problemName", problemName)
-                .queryParam("algorithm", algorithm)
-                .queryParam("startDateTime", result.start().format(formatter))
-                .queryParam("endDateTime", result.end().format(formatter))
-                .queryParam("statType", statType)
-                .queryParam("isPlot", isPlot)
-                .queryParam("isCsv", isCsv)
-                .queryParam("metricsNamesToPlot", metricsNamesToPlot)
-                .queryParam("groupName", groupName);
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("problemName", problemName);
+        requestBody.put("algorithm", algorithm);
+        requestBody.put("startDateTime", result.start().format(formatter));
+        requestBody.put("endDateTime", result.end().format(formatter));
+        requestBody.put("statType", statType);
+        requestBody.put("isPlot", true);
+        requestBody.put("isCsv", isCsv);
+        requestBody.put("metricsNamesToPlot", metricsNamesToPlot);
+        requestBody.put("groupName", groupName);
+        System.out.println(isPlot);
 
-        String finalUrl = builder.build().toUriString();
-        calculateStatsUsingServer(restTemplate, finalUrl);
+//        String finalUrl = builder.build().toUriString();
+        calculateStatsUsingServer(restTemplate, statsUrl, requestBody);
     }
 
     private LocalDateTimeResult getLocalDateTimeResult(DateTimeFormatter formatter) {
@@ -126,15 +131,29 @@ public class GetStatsCommand implements Runnable {
         return new LocalDateTimeResult(start, end);
     }
 
-    private void calculateStatsUsingServer(RestTemplate restTemplate, String finalUrl) {
+    private void calculateStatsUsingServer(RestTemplate restTemplate, String finalUrl, Map<String, Object> requestBody) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
         try {
-            String response = restTemplate.getForObject(finalUrl, String.class);
+            String response = restTemplate.exchange(finalUrl, HttpMethod.POST, requestEntity, String.class).getBody();
             ObjectMapper objectMapper = new ObjectMapper();
 
-            MetricsAndFiles metricsAndFiles = objectMapper.readValue(response, new TypeReference<>() {
-            });
-            DataPrinter.printStats(problemName, algorithm, startDateTime, endDateTime, statType, metricsAndFiles.getMetrics(), groupName);
-            if (Boolean.parseBoolean(isPlot) || Boolean.parseBoolean(isCsv)) {
+            MetricsAndFiles metricsAndFiles = objectMapper.readValue(response, new TypeReference<>() {});
+
+            DataPrinter.printStats(
+                    problemName,
+                    algorithm,
+                    startDateTime,
+                    endDateTime,
+                    statType,
+                    metricsAndFiles.getMetrics(),
+                    groupName
+            );
+
+            if (!metricsNamesToPlot.get(0).equals(CliDefaults.DEFAULT_METRIC_NAMES) || isCsv) {
                 FilesSaver.saveFiles(metricsAndFiles.getFiles());
             }
 

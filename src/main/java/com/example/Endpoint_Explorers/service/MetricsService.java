@@ -9,8 +9,10 @@ import com.example.Endpoint_Explorers.request.RunExperimentRequest;
 import lombok.RequiredArgsConstructor;
 import org.moeaframework.analysis.collector.Observation;
 import org.moeaframework.analysis.collector.Observations;
+import org.moeaframework.problem.misc.Lis;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -55,5 +57,12 @@ public class MetricsService {
 
     public String parseMetricsName(String metricsName) {
         return metricsName.replace("-", "").replace(" ", "");
+    }
+
+    public List<String> parseMetricsList(List<String> metricsNames) {
+        return metricsNames.stream()
+                .map(this::parseMetricsName)
+                .map(String::toLowerCase)
+                .toList();
     }
 }

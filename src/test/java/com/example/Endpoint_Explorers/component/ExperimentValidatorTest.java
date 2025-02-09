@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -96,7 +97,7 @@ class ExperimentValidatorTest {
         Timestamp end = Timestamp.valueOf("2024-01-01 00:00:00");
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                validator.validateStatsParams("uf1", "nsga-ii", start, end)
+                validator.validateStatsParams("uf1", "nsga-ii", start, end, new ArrayList<>())
         );
         assertTrue(ex.getMessage().contains("Start date cannot be after end date."));
     }
@@ -105,7 +106,7 @@ class ExperimentValidatorTest {
     void validateDatesNullEnd() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 validator.validateStatsParams("uf1", "gde3",
-                        Timestamp.valueOf("2024-01-01 00:00:00"), null)
+                        Timestamp.valueOf("2024-01-01 00:00:00"), null, new ArrayList<>())
         );
         assertTrue(ex.getMessage().contains("End date cannot be null."));
     }

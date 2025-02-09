@@ -99,7 +99,7 @@ class StatisticsServiceTest {
         when(metricsRepository.findByExperimentId(1)).thenReturn(List.of(m1, m3));
         when(metricsRepository.findByExperimentId(2)).thenReturn(List.of(m2, m4));
 
-        doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any());
+        doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any(), anyList());
 
         // symulacja liczenia MEDIAN:
         // iteration=100 => [10,20] => median=15
@@ -122,7 +122,7 @@ class StatisticsServiceTest {
         assertEquals(15.0, values.get(0));
         assertEquals(20.0, values.get(1));
 
-        verify(validator).validateStatsParams(eq(problemName), eq(algorithm), any(), any());
+        verify(validator).validateStatsParams(eq(problemName), eq(algorithm), any(), any(), anyList());
     }
 
     @Test
@@ -138,7 +138,7 @@ class StatisticsServiceTest {
                 anyString(), anyString(), eq(StatusEnum.COMPLETED), any(), any(), anyString()
         )).thenReturn(Collections.emptyList());
 
-        doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any());
+        doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any(), any());
 
         // when & then
         assertThrows(IllegalArgumentException.class, () ->
@@ -174,7 +174,7 @@ class StatisticsServiceTest {
         when(metricsRepository.findByExperimentId(10))
                 .thenReturn(List.of(m1));
 
-        doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any());
+        doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any(), anyList());
 
         when(statisticsCalculator.calculateStat(eq(List.of(11f)), eq(StatEnum.STD_DEV)))
                 .thenReturn(11.0);
@@ -194,7 +194,7 @@ class StatisticsServiceTest {
     @Test
     void getStatsTimeFromInterval_validatorThrows() {
         doThrow(new IllegalArgumentException("Wrong date interval"))
-                .when(validator).validateStatsParams(anyString(), anyString(), any(), any());
+                .when(validator).validateStatsParams(anyString(), anyString(), any(), any(), anyList());
 
         assertThrows(IllegalArgumentException.class, () ->
                 statisticsService.getStatsTimeFromInterval("UF1", "e-MOEA",
@@ -216,7 +216,7 @@ class StatisticsServiceTest {
                 anyString(), anyString(), eq(StatusEnum.COMPLETED), any(), any(), anyString()
         )).thenReturn(List.of(dummyExp));
 
-        doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any());
+        doNothing().when(validator).validateStatsParams(anyString(), anyString(), any(), any(), anyList());
 
         // Zwracamy pustą listę metryk => finalny result jest pustą mapą
         when(metricsRepository.findByExperimentId(99)).thenReturn(Collections.emptyList());

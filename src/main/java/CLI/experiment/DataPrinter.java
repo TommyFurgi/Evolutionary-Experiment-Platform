@@ -115,8 +115,9 @@ public class DataPrinter {
         System.out.print(", Algorithm: " + algorithm);
         System.out.print(", Start DateTime: " + startDateTime);
         System.out.print(", End DateTime: " + (endDateTime.isEmpty() ? "Current Time" : endDateTime));
-        System.out.println(", Stat Type: " + statType);
-        System.out.println(", Group Name: " + groupName);
+        System.out.print(", Stat Type: " + statType);
+        System.out.print(", Group Name: " + groupName);
+        System.out.println();
         System.out.println("_".repeat(FLOOR_AMOUNT));
     }
 

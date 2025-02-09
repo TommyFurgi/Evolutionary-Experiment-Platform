@@ -28,6 +28,7 @@ public class StatisticsService {
     private final ExperimentValidator validator;
     private final PlotService plotService;
     private final CsvService csvService;
+    private final MetricsService metricsService;
     private Map<String, List<Double>> resultMetricsMap;
     @Getter
     private Timestamp startDate;
@@ -49,6 +50,7 @@ public class StatisticsService {
         );
 
         List<FileDetails> files = new ArrayList<>();
+        metricsNames = metricsService.parseMetricsList(metricsNames);
 
         if (isPlot) {
             int maxIteration = getMaxIteration(metricsResults);
@@ -93,7 +95,7 @@ public class StatisticsService {
         startDate = timestamps.start;
         endDate = timestamps.end;
 
-        validator.validateStatsParams(problemName, algorithm, startDate, endDate);
+        validator.validateStatsParams(problemName, algorithm, startDate, endDate, metricsNames);
 
         List<Experiment> experiments = extractExperiments(algorithm, problemName, startDate, endDate, groupName);
         int maxPossibleEvaluation = getMaxPossibleEvaluation(experiments);

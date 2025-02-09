@@ -3,6 +3,7 @@ package com.example.Endpoint_Explorers.service;
 import com.example.Endpoint_Explorers.component.CsvContentConverter;
 import com.example.Endpoint_Explorers.model.FileDetails;
 import com.example.Endpoint_Explorers.utils.DirectoryUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.FileWriter;
@@ -12,6 +13,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class CsvService {
 
@@ -38,9 +40,9 @@ public class CsvService {
 
         try (FileWriter writer = new FileWriter(fullPath)) {
             writer.write(csvContent);
-            System.out.println("CSV saved successfully at: " + fullPath);
+            log.info("CSV saved successfully at: " + fullPath);
         } catch (IOException e) {
-            System.out.println("Error while saving CSV file: " + e.getMessage());
+            throw new RuntimeException("Error while saving CSV file: " + e.getMessage(), e);
         }
 
         byte[] csvBytes = csvContent.getBytes(StandardCharsets.UTF_8);

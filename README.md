@@ -145,7 +145,7 @@ The endpoint accepts a JSON object that must match the `RunExperimentRequest` st
 
 ---
 
-### Run Many Different Experiments
+### Run Multiple Experiments
 - **URL**: `/experiments/manyDifferent`
 - **Method**: `POST`
 - **Description**: Triggers multiple experiments for combinations of problems and algorithms. Each experiment is executed based on the parameters provided.
@@ -320,9 +320,19 @@ The endpoint accepts a JSON object with the following required fields:
 ---
 
 #### Example Request:
-```http
-GET /stats?problemName=UF1&algorithm=NSGA-II&startDateTime=2025-01-01T00:00:00&endDateTime=2025-01-07T23:59:59&statType=summary&isPlot=true&isCsv=false&metricsNamesToPlot=elapsed-time,spacing&groupName=group1
-
+```json
+{
+  "problemName": "uf1",
+  "algorithm": "e-moea",
+  "startDateTime": "2024-01-01_00:00:00",
+  "endDateTime": "2026-01-01_00:00:00",
+  "statType": "median",
+  "isPlot": false,
+  "isCsv": false,
+  "metricsNamesToPlot": ["elapsed-time", "spacing"],
+  "groupName": ""
+}
+```
 
 ---
 
@@ -424,7 +434,6 @@ get <experimentId>
 #### Usage
 ```bash
 getStats <problemName> <algorithm> [options]
-[options]
 ```
 
 #### Parameters
@@ -446,7 +455,6 @@ Example
 
 `-e, --end <endDateTime>`
 End of the time interval
-
 Format: yyyy-MM-dd_HH:mm:ss
 Default (if not provided): current time and date
 

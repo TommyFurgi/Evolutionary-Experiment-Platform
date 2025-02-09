@@ -31,7 +31,6 @@ public class FilesSaver {
             } else if (fileName.endsWith(".csv")) {
                 filePath = Paths.get(CLIENT_BASE_PATH_CSV + fileName);
             } else {
-                //to delete
                 filePath = Paths.get("src/main/java/CLI/clientResources/other/" + fileName);
             }
 

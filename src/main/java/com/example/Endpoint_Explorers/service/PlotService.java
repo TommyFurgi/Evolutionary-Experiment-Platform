@@ -21,45 +21,24 @@ public class PlotService {
     ) {
         List<String> fileNamePaths = new ArrayList<>();
 
-        if (metricsNames.size() == 1 && metricsNames.get(0).equals("all")) {
-            for (String key : resultMetricsMap.keySet()) {
-                String plotPath = PlotFactory.createPlot(
-                        key,
-                        algorithmName,
-                        problemName,
-                        startDate,
-                        endDate,
-                        iterations,
-                        resultMetricsMap.get(key)
-                );
-                fileNamePaths.add(plotPath);
-            }
-        } else if (metricsNames.size() != 1) {
-            for (String key : metricsNames) {
-                String plotPath = PlotFactory.createPlot(
-                        key,
-                        algorithmName,
-                        problemName,
-                        startDate,
-                        endDate,
-                        iterations,
-                        resultMetricsMap.get(key)
-                );
-                fileNamePaths.add(plotPath);
-            }
-        } else if (!metricsNames.get(0).equals("none")) {
-            String singleMetric = metricsNames.get(0);
+        if (metricsNames.isEmpty() || metricsNames.get(0).equals("none"))
+            return fileNamePaths;
+        else if (metricsNames.get(0).equals("all"))
+            metricsNames = new ArrayList<>(resultMetricsMap.keySet());
+
+        for (String singleName : metricsNames) {
             String plotPath = PlotFactory.createPlot(
-                    singleMetric,
+                    singleName,
                     algorithmName,
                     problemName,
                     startDate,
                     endDate,
                     iterations,
-                    resultMetricsMap.get(singleMetric)
+                    resultMetricsMap.get(singleName)
             );
             fileNamePaths.add(plotPath);
         }
+
         return fileNamePaths;
     }
 }
