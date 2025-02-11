@@ -1,0 +1,50 @@
+package com.endpointexplorers.cli.experiment;
+
+import com.endpointexplorers.cli.config.CliConfig;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static com.endpointexplorers.cli.experiment.ExperimentMapper.parseExperimentList;
+
+public class ScheduledExperimentFetcher {
+    private static final int INITIAL_DELAY = 4;
+    private static final int PERIOD = 2;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final RestTemplate restTemplate = new RestTemplate();
+
+
+    public void startRequesting() {
+        scheduler.scheduleAtFixedRate(this::sendRequest, INITIAL_DELAY, PERIOD, TimeUnit.SECONDS);
+    }
+
+    private void sendRequest() {
+        try {
+            String Url = CliConfig.CHECK_STATUS_URL;
+            ResponseEntity<String> response = restTemplate.getForEntity(Url, String.class);
+            handleResponse(response);
+        } catch (Exception e) {
+            System.err.println("Error while getting experiment: " + e.getMessage());
+        }
+    }
+
+    private void handleResponse(ResponseEntity<String> response) {
+        if (response.getStatusCode().is2xxSuccessful()) {
+            List<Experiment> experiments = parseExperimentList(response);
+            if (!experiments.isEmpty()) {
+                System.out.print("\033[s");
+                System.out.println();
+                experiments.forEach(experiment -> System.out.println(experiment.toString()));
+                System.out.print("\033[u");
+                System.out.print("> ");
+                System.out.flush();
+            }
+        } else {
+            System.err.println("Failed to fetch experiment. Status: " + response.getStatusCode());
+        }
+    }
+}
