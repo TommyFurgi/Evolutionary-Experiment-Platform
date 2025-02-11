@@ -29,6 +29,7 @@ public class StatisticsService {
     private final PlotService plotService;
     private final CsvService csvService;
     private final MetricsService metricsService;
+    private final FileContentConverter fileContentConverter;
     private Map<String, List<Double>> resultMetricsMap;
     @Getter
     private Timestamp startDate;
@@ -61,20 +62,16 @@ public class StatisticsService {
                     metricsNames,
                     algorithm,
                     problemName,
-                    startDate,
-                    endDate,
                     iterations
             );
-            files.addAll(FileContentConverter.createFilesDetails(plotPaths));
+            files.addAll(fileContentConverter.createFilesDetails(plotPaths));
         }
 
         if (isCsv) {
             FileDetails csvFile = csvService.createCsv(
                     metricsResults,
                     problemName,
-                    algorithm,
-                    start,
-                    end
+                    algorithm
             );
             files.add(csvFile);
         }

@@ -1,25 +1,32 @@
 package com.endpointexplorers.server.service;
 
 import com.endpointexplorers.server.component.PlotFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class PlotService {
+    private final PlotFactory plotFactory;
+
     public List<String> generatePlots(
             Map<String, List<Double>> resultMetricsMap,
             List<String> metricsNames,
             String algorithmName,
             String problemName,
-            Timestamp startDate,
-            Timestamp endDate,
             List<Integer> iterations
     ) {
         List<String> fileNamePaths = new ArrayList<>();
+
+        LocalDateTime currentDate = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+        String folderName = currentDate.format(formatter);
 
         if (metricsNames.isEmpty() || metricsNames.get(0).equals("none"))
             return fileNamePaths;
@@ -27,12 +34,11 @@ public class PlotService {
             metricsNames = new ArrayList<>(resultMetricsMap.keySet());
 
         for (String singleName : metricsNames) {
-            String plotPath = PlotFactory.createPlot(
+            String plotPath = plotFactory.createPlot(
+                    folderName,
                     singleName,
                     algorithmName,
                     problemName,
-                    startDate,
-                    endDate,
                     iterations,
                     resultMetricsMap.get(singleName)
             );

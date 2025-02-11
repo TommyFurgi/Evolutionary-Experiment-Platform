@@ -16,7 +16,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import picocli.CommandLine;
 
 import java.time.LocalDateTime;
@@ -28,8 +27,8 @@ import java.util.Map;
 
 @CommandLine.Command(name = "getStats", description = "Get experiment stats from server")
 public class GetStatsCommand implements Runnable {
-    private record LocalDateTimeResult(LocalDateTime start, LocalDateTime end) {
-    }
+    private record LocalDateTimeResult(LocalDateTime start, LocalDateTime end) {}
+    private final FilesSaver filesSaver;
 
     @CommandLine.Parameters(index = "0", description = "Calculate stats for the given problem")
     private String problemName;
@@ -83,6 +82,10 @@ public class GetStatsCommand implements Runnable {
             defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
     private String groupName;
 
+    public GetStatsCommand(FilesSaver filesSaver) {
+        this.filesSaver = filesSaver;
+    }
+
     @Override
     public void run() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
@@ -103,7 +106,6 @@ public class GetStatsCommand implements Runnable {
         requestBody.put("isCsv", isCsv);
         requestBody.put("metricsNamesToPlot", metricsNamesToPlot);
         requestBody.put("groupName", groupName);
-        System.out.println(isPlot);
 
 //        String finalUrl = builder.build().toUriString();
         calculateStatsUsingServer(restTemplate, statsUrl, requestBody);
@@ -154,7 +156,7 @@ public class GetStatsCommand implements Runnable {
             );
 
             if (!metricsNamesToPlot.get(0).equals(CliDefaults.DEFAULT_METRIC_NAMES) || isCsv) {
-                FilesSaver.saveFiles(metricsAndFiles.getFiles());
+                filesSaver.saveFiles(metricsAndFiles.getFiles());
             }
 
         } catch (HttpClientErrorException e) {

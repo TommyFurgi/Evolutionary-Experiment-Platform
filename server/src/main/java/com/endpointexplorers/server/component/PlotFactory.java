@@ -1,29 +1,41 @@
 package com.endpointexplorers.server.component;
 
 import com.endpointexplorers.server.utils.DirectoryUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.XYChart;
 import org.knowm.xchart.XYChartBuilder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
+import javax.annotation.PostConstruct;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
+@Slf4j
+@Component
 public class PlotFactory {
-    private static final String BASE_PATH = "src/main/java/com/example/Endpoint_Explorers/serverResources/plots/";
 
-    public static String createPlot(
+    @Value("${path.serverPlotsResources}")
+    private String serverResourcesPath;
+
+    private Path sourcePath;
+
+    @PostConstruct
+    public void init() {
+        this.sourcePath = Paths.get(serverResourcesPath).toAbsolutePath();
+    }
+
+    public String createPlot(
+            String folderName,
             String metricName,
             String algorithmName,
             String problemName,
-            Timestamp startDate,
-            Timestamp endDate,
             List<Integer> iterations,
             List<Double> values) {
 
         checkInputData(iterations, values);
-        DirectoryUtils.ensureDirectoryExists(BASE_PATH);
         XYChart chart = new XYChartBuilder()
                 .width(800)
                 .height(800)
@@ -33,9 +45,8 @@ public class PlotFactory {
                 .build();
         chart.addSeries(metricName, iterations, values);
 
-        return savePlot(chart, metricName, algorithmName, problemName, startDate, endDate);
+        return savePlot(chart, folderName, metricName, algorithmName, problemName);
     }
-
 
     private static void checkInputData(List<Integer> iterations, List<Double> values) {
         if (iterations == null || values == null || iterations.size() != values.size()) {
@@ -43,34 +54,23 @@ public class PlotFactory {
         }
     }
 
-    private static String savePlot(XYChart chart, String metricName, String algorithmName, String problemName, Timestamp startDate, Timestamp endDate) {
-        String finalPath = createFinalPath(metricName, algorithmName, problemName, startDate, endDate);
+    private String savePlot(XYChart chart, String folderName, String metricName, String algorithmName, String problemName) {
+        String finalPath = createFinalPath(folderName, metricName, algorithmName, problemName);
 
         try {
             BitmapEncoder.saveBitmap(chart, finalPath, BitmapEncoder.BitmapFormat.PNG);
             System.out.println("Plot saved successfully.");
         } catch (Exception e) {
             System.out.println("Error while saving the plot.");
+            throw new RuntimeException("An error occurred while saving the plot.", e);
         }
         return finalPath;
     }
 
-    private static String createFinalPath(String metricName, String algorithmName, String problemName, Timestamp startDate, Timestamp endDate) {
-        SimpleDateFormat dataFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-        String formattedStartDate = dataFormat.format(startDate);
-        String formattedEndDate = dataFormat.format(endDate);
+    private String createFinalPath(String folderName, String metricName, String algorithmName, String problemName) {
+        String metricsDirPath = sourcePath.resolve(folderName).toString();
+        DirectoryUtils.ensureDirectoryExists(metricsDirPath);
 
-        return createMetricNamePath(metricName)
-                + algorithmName + "_" + problemName + "_"
-                + formattedStartDate + "_" + formattedEndDate + ".png";
-    }
-
-    private static String createMetricNamePath(String metricName) {
-        String metricsDirPath = BASE_PATH + metricName + "/";
-        File metricsDir = new File(metricsDirPath);
-        if (!metricsDir.exists() && !metricsDir.mkdirs()) {
-            System.out.println("There is a problem with directory creation: " + metricsDirPath);
-        }
-        return metricsDirPath;
+        return metricsDirPath + "/" + metricName + "-" + algorithmName + "-" + problemName + ".png";
     }
 }

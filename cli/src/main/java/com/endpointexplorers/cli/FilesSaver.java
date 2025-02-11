@@ -2,6 +2,8 @@ package com.endpointexplorers.cli;
 
 import com.endpointexplorers.cli.component.FileDetails;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,9 +12,22 @@ import java.util.Base64;
 import java.util.List;
 
 public class FilesSaver {
-    private static final String CLIENT_BASE_PATH_PLOTS = "src/main/java/CLI/clientResources/plots/";
-    private static final String CLIENT_BASE_PATH_CSV = "src/main/java/CLI/clientResources/csv/";
-    public static void saveFiles(List<FileDetails> fileDetailsList) {
+    private final String cliPlotsResourcesPath;
+    private final String cliCSVsResourcesPath;
+    private final String cliOthersResourcesPath;
+
+    @Inject
+    public FilesSaver(
+            @Named("cliPlotsResources") String cliPlotsResourcesPath,
+            @Named("cliCSVsResources") String cliCSVsResourcesPath,
+            @Named("cliOthersResources") String cliOthersResourcesPath
+    ) {
+        this.cliPlotsResourcesPath = cliPlotsResourcesPath;
+        this.cliCSVsResourcesPath = cliCSVsResourcesPath;
+        this.cliOthersResourcesPath = cliOthersResourcesPath;
+    }
+
+    public void saveFiles(List<FileDetails> fileDetailsList) {
         if (!fileDetailsList.isEmpty()) {
             for (FileDetails file : fileDetailsList) {
                 saveFile(file);
@@ -20,19 +35,11 @@ public class FilesSaver {
         }
     }
 
-    private static void saveFile(FileDetails file) {
+    private void saveFile(FileDetails file) {
         try {
             byte[] fileContent = Base64.getDecoder().decode(file.getContentBase64());
             String fileName = file.getFileName();
-            Path filePath;
-
-            if (fileName.endsWith(".png")) {
-                filePath = Paths.get(CLIENT_BASE_PATH_PLOTS + fileName);
-            } else if (fileName.endsWith(".csv")) {
-                filePath = Paths.get(CLIENT_BASE_PATH_CSV + fileName);
-            } else {
-                filePath = Paths.get("src/main/java/CLI/clientResources/other/" + fileName);
-            }
+            Path filePath = getFilePath(fileName);
 
             Files.createDirectories(filePath.getParent());
             Files.write(filePath, fileContent);
@@ -40,6 +47,16 @@ public class FilesSaver {
         } catch (IOException e) {
             System.err.println("Failed to save file: " + file.getFileName());
             e.printStackTrace();
+        }
+    }
+
+    private Path getFilePath(String fileName) {
+        if (fileName.endsWith(".png")) {
+            return Paths.get(cliPlotsResourcesPath, fileName);
+        } else if (fileName.endsWith(".csv")) {
+            return Paths.get(cliCSVsResourcesPath, fileName);
+        } else {
+            return Paths.get(cliOthersResourcesPath, fileName);
         }
     }
 }

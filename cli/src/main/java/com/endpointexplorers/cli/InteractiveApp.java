@@ -4,6 +4,8 @@ import com.endpointexplorers.cli.command.*;
 import com.endpointexplorers.cli.experiment.ScheduledExperimentFetcher;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import java.util.Scanner;
 
@@ -17,13 +19,16 @@ public class InteractiveApp implements Runnable {
 
     @Override
     public void run() {
+        Injector injector = Guice.createInjector(new AppModule());
+        FilesSaver filesSaver = injector.getInstance(FilesSaver.class);
+
         Scanner scanner = new Scanner(System.in);
         CommandLine cmd = new CommandLine(this);
 
         cmd.addSubcommand("run", new RunExperimentCommand());
         cmd.addSubcommand("get", new GetExperimentCommand());
         cmd.addSubcommand("list", new GetExperimentsListCommand());
-        cmd.addSubcommand("getStats", new GetStatsCommand());
+        cmd.addSubcommand("getStats", new GetStatsCommand(filesSaver));
         cmd.addSubcommand("runManyDiff", new RunManyDifferentExperimentCommand());
         cmd.addSubcommand("setGroup", new SetExperimentsGroupCommand());
         cmd.addSubcommand("delete", new DeleteExperimentCommand());

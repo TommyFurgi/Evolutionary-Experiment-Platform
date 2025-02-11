@@ -3,40 +3,38 @@ package com.endpointexplorers.server.service;
 import com.endpointexplorers.server.component.CsvContentConverter;
 import com.endpointexplorers.server.model.FileDetails;
 import com.endpointexplorers.server.utils.DirectoryUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CsvService {
 
-    private static final String BASE_PATH = "src/main/java/com/example/Endpoint_Explorers/serverResources/csv/";
+    @Value("${path.serverCSVsResources}")
+    private String serverResourcesPath;
+    private final CsvContentConverter csvContentConverter;
 
     public FileDetails createCsv(
             Map<String, List<Double>> metricsResults,
             String problemName,
-            String algorithm,
-            String startDateTime,
-            String endDateTime
+            String algorithm
     ) {
-        String csvContent = CsvContentConverter.buildCsvContent(metricsResults);
+        String csvContent = csvContentConverter.buildCsvContent(metricsResults);
 
-        String safeStartDateTime = startDateTime.replace(":", "-");
-        String safeEndDateTime = endDateTime.replace(":", "-");
-        String fileName = "stats_"
-                + problemName + "_" + algorithm + "_"
-                + safeStartDateTime + "_" + safeEndDateTime
-                + ".csv";
-
-        DirectoryUtils.ensureDirectoryExists(BASE_PATH);
-        String fullPath = BASE_PATH + fileName;
+        String fileName = createFileName(algorithm, problemName);
+        String fullPath = createFinalPath(fileName);
 
         try (FileWriter writer = new FileWriter(fullPath)) {
             writer.write(csvContent);
@@ -49,5 +47,19 @@ public class CsvService {
         String base64Encoded = Base64.getEncoder().encodeToString(csvBytes);
 
         return new FileDetails(fileName, base64Encoded);
+    }
+
+    private String createFinalPath(String fileName) {
+        DirectoryUtils.ensureDirectoryExists(serverResourcesPath);
+
+        return serverResourcesPath + "/" + fileName;
+    }
+
+    private String createFileName(String algorithmName, String problemName) {
+        LocalDateTime currentDate = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+        String date = currentDate.format(formatter);
+
+        return date + "-" + algorithmName + "-" + problemName + ".csv";
     }
 }
