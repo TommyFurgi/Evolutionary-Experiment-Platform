@@ -1,10 +1,10 @@
-package com.endpointexplorers.cli;
+package com.endpointexplorers.cli.config;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.name.Named;
 
-public class AppModule extends AbstractModule {
+public class PathModule extends AbstractModule {
     @Provides
     @Named("cliPlotsResources")
     public String provideCliPlotsResourcesPath() {

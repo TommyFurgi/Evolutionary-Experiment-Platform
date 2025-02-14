@@ -5,17 +5,26 @@ import picocli.CommandLine.Help;
 import picocli.CommandLine.Help.Column;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class DataPrinter {
+    private static final int EVALUATION_FREQUENCY = 100;
     private static final int ITERATION_COLUMN_WIDTH = 20;
     private static final int COLUMN_PADDING = 2;
     private static final int DEFAULT_METRIC_COLUMN_WIDTH = 15;
     private static final int EXTRA_WIDTH_FOR_METRIC_NAME = 5;
     private static final int FLOOR_AMOUNT = 150;
 
-    public static void displayTable(Experiment experiment) {
+    public static void printExperimentValues(Experiment experiment) {
         List<Metrics> metrics = experiment.metrics();
         Set<String> uniqueMetricNames = getUniqueMetricNames(metrics);
+
+        displayTable(metrics, uniqueMetricNames);
+    }
+
+    private static void displayTable(List<Metrics> metrics, Set<String> uniqueMetricNames) {
         Column[] columns = createColumns(uniqueMetricNames);
 
         CommandLine.Help.ColorScheme colorScheme = new CommandLine.Help.ColorScheme.Builder()
@@ -102,11 +111,10 @@ public class DataPrinter {
                                   String endDateTime, String statType, Map<String, List<Double>> metricsMap, String groupName) {
 
         printStatsConfiguration(problemName, algorithm, startDateTime, endDateTime, statType, groupName);
+        Set<String> uniqueMetricNames = metricsMap.keySet();
+        List<Metrics> metricsList = createMetricsObjects(metricsMap);
 
-        int maxEvaluations = calculateMaxEvaluations(metricsMap);
-
-        printMetricNames(maxEvaluations);
-        printStatsScore(metricsMap, maxEvaluations);
+        displayTable(metricsList, uniqueMetricNames);
     }
 
     private static void printStatsConfiguration(String problemName, String algorithm, String startDateTime, String endDateTime, String statType, String groupName) {
@@ -121,35 +129,23 @@ public class DataPrinter {
         System.out.println("_".repeat(FLOOR_AMOUNT));
     }
 
-    private static int calculateMaxEvaluations(Map<String, List<Double>> metricsMap) {
-        return metricsMap.values().stream()
-                .mapToInt(List::size)
-                .max()
-                .orElse(0);
-    }
+    public static List<Metrics> createMetricsObjects(Map<String, List<Double>> metricsMap) {
+        AtomicInteger idCounter = new AtomicInteger(1);
 
-    private static void printMetricNames(int maxEvaluations) {
-        System.out.printf("%-35s", "Metric Name");
-        for (int i = 1; i <= maxEvaluations; i++) {
-            System.out.printf("%-12s", "NFE" + (i * 100));
-        }
-        System.out.println();
-    }
+        return metricsMap.entrySet().stream()
+                .flatMap(entry -> {
+                    String metricName = entry.getKey();
+                    List<Double> values = entry.getValue();
 
-    private static void printStatsScore(Map<String, List<Double>> metricsMap, int maxEvaluations) {
-        System.out.println("_".repeat(FLOOR_AMOUNT));
-        metricsMap.forEach((key, values) -> {
-            System.out.printf("%-35s", key);
-            for (int i = 0; i < maxEvaluations; i++) {
-                if (i < values.size()) {
-                    System.out.printf("%-12.2f", values.get(i));
-                } else {
-                    System.out.printf("%-10s", "N/A");
-                }
-            }
-            System.out.println();
-        });
-        System.out.println("_".repeat(FLOOR_AMOUNT));
+                    return IntStream.range(0, values.size())
+                            .mapToObj(i -> new Metrics(
+                                    idCounter.getAndIncrement(),
+                                    metricName,
+                                    (i + 1) * EVALUATION_FREQUENCY,
+                                    values.get(i).floatValue()
+                            ));
+                })
+                .collect(Collectors.toList());
     }
 
     public static void displayExperimentsList(List<Experiment> experiments) {

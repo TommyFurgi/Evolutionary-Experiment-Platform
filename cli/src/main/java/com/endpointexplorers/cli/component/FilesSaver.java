@@ -1,6 +1,4 @@
-package com.endpointexplorers.cli;
-
-import com.endpointexplorers.cli.component.FileDetails;
+package com.endpointexplorers.cli.component;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -46,7 +44,6 @@ public class FilesSaver {
             System.out.println("File saved to: " + filePath);
         } catch (IOException e) {
             System.err.println("Failed to save file: " + file.getFileName());
-            e.printStackTrace();
         }
     }
 

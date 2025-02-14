@@ -1,9 +1,11 @@
 package com.endpointexplorers.cli.command;
 
-import com.endpointexplorers.cli.config.CliConfig;
 import com.endpointexplorers.cli.config.CliDefaults;
 import com.endpointexplorers.cli.handler.GlobalExceptionHandler;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -34,11 +36,17 @@ public class RunExperimentCommand implements Runnable {
     @CommandLine.Option(names = {"-g", "--groupName"}, description = "Name of the group (default: none)", defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
     private String groupName;
 
+    private final String runExperimentUrl;
+    private final String runManyExperimentsUrl;
+
+    @Inject
+    public RunExperimentCommand(@Named("runExperimentUrl") String runExperimentUrl, @Named("runManyExperimentsUrl") String runManyExperimentsUrl) {
+        this.runExperimentUrl = runExperimentUrl;
+        this.runManyExperimentsUrl  = runManyExperimentsUrl;
+    }
+
     @Override
     public void run() {
-        String urlExperiment = CliConfig.RUN_EXPERIMENT_URL;
-        String urlExperiments = CliConfig.RUN_EXPERIMENTS_URL;
-
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("problemName", problemName);
         requestBody.put("algorithm", algorithm);
@@ -53,7 +61,7 @@ public class RunExperimentCommand implements Runnable {
             System.out.printf("Preparing to run experiment:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n Group: %s%n",
                     problemName, algorithm, metrics, evaluationNumber, groupName);
             try {
-                String response = restTemplate.postForObject(urlExperiment, requestBody, String.class);
+                String response = restTemplate.postForObject(runExperimentUrl, requestBody, String.class);
                 System.out.println("Server response: " + response);
             } catch (HttpClientErrorException e) {
                 GlobalExceptionHandler.handleHttpClientError(e, "Error while running experiment: ");
@@ -62,8 +70,10 @@ public class RunExperimentCommand implements Runnable {
             System.out.printf("Preparing to run %d experiments:%n Problem: %s%n Algorithm: %s%n Metrics: %s%n Evaluations: %d%n Group: %s%n",
                     experimentIterationNumber, problemName, algorithm, metrics, evaluationNumber, groupName);
             try {
-                String response = restTemplate.postForObject(urlExperiments, requestBody, String.class);
+                String response = restTemplate.postForObject(runManyExperimentsUrl, requestBody, String.class);
                 System.out.println("Server response: " + response);
+            } catch (ResourceAccessException e) {
+                GlobalExceptionHandler.handleResourceAccessError(e);
             } catch (HttpClientErrorException e) {
                 GlobalExceptionHandler.handleHttpClientError(e, "Error while running experiments: ");
             }

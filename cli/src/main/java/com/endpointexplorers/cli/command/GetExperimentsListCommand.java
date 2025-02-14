@@ -1,18 +1,20 @@
 package com.endpointexplorers.cli.command;
 
-import com.endpointexplorers.cli.config.CliConfig;
 import com.endpointexplorers.cli.config.CliDefaults;
-import com.endpointexplorers.cli.experiment.DataPrinter;
+import com.endpointexplorers.cli.component.DataPrinter;
 import com.endpointexplorers.cli.experiment.Experiment;
 import com.endpointexplorers.cli.experiment.ExperimentMapper;
 import com.endpointexplorers.cli.handler.GlobalExceptionHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 
@@ -37,10 +39,15 @@ public class GetExperimentsListCommand implements Runnable {
     @CommandLine.Option(names = {"-g", "--groupNames"}, arity = "0..*", description = "Names of the groups", defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
     private List<String> groupNames;
 
+    private final String experimentListUrl;
+
+    @Inject
+    public GetExperimentsListCommand(@Named("getExperimentListUrl") String experimentListUrl) {
+        this.experimentListUrl = experimentListUrl;
+    }
+
     @Override
     public void run() {
-        String baseUrl = CliConfig.EXPERIMENT_LIST_URL;
-
         Map<String, Object> bodyMap = new HashMap<>();
         addToMapIfNotDefault(bodyMap, "statuses", statuses, CliDefaults.DEFAULT_STATUS);
         addToMapIfNotDefault(bodyMap, "problems", problems, CliDefaults.DEFAULT_PROBLEM);
@@ -59,7 +66,7 @@ public class GetExperimentsListCommand implements Runnable {
 
             HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
-            ResponseEntity<String> response = restTemplate.postForEntity(baseUrl, requestEntity, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(experimentListUrl, requestEntity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 List<Experiment> experiments = ExperimentMapper.parseExperimentList(response);
@@ -69,6 +76,8 @@ public class GetExperimentsListCommand implements Runnable {
             } else {
                 System.err.println("Failed to fetch experiments. Status: " + response.getStatusCode());
             }
+        } catch (ResourceAccessException e) {
+            GlobalExceptionHandler.handleResourceAccessError(e);
         } catch (HttpClientErrorException e) {
             GlobalExceptionHandler.handleHttpClientError(e, "Error while getting experiments: ");
         } catch (JsonProcessingException e) {

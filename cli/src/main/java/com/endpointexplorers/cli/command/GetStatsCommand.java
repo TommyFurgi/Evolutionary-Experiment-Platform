@@ -1,20 +1,22 @@
 package com.endpointexplorers.cli.command;
 
-import com.endpointexplorers.cli.FilesSaver;
+import com.endpointexplorers.cli.component.FilesSaver;
 import com.endpointexplorers.cli.component.MetricsAndFiles;
-import com.endpointexplorers.cli.config.CliConfig;
 import com.endpointexplorers.cli.config.CliDefaults;
-import com.endpointexplorers.cli.experiment.DataPrinter;
+import com.endpointexplorers.cli.component.DataPrinter;
 import com.endpointexplorers.cli.handler.GlobalExceptionHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 
@@ -82,7 +84,11 @@ public class GetStatsCommand implements Runnable {
             defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
     private String groupName;
 
-    public GetStatsCommand(FilesSaver filesSaver) {
+    private final String statsUrl;
+
+    @Inject
+    public GetStatsCommand(@Named("getStatsUrl") String statsUrl, FilesSaver filesSaver) {
+        this.statsUrl = statsUrl;
         this.filesSaver = filesSaver;
     }
 
@@ -94,7 +100,6 @@ public class GetStatsCommand implements Runnable {
         if (result == null) return;
 
         RestTemplate restTemplate = new RestTemplate();
-        String statsUrl = CliConfig.STATS_URL;
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("problemName", problemName);
@@ -107,7 +112,6 @@ public class GetStatsCommand implements Runnable {
         requestBody.put("metricsNamesToPlot", metricsNamesToPlot);
         requestBody.put("groupName", groupName);
 
-//        String finalUrl = builder.build().toUriString();
         calculateStatsUsingServer(restTemplate, statsUrl, requestBody);
     }
 
@@ -158,7 +162,8 @@ public class GetStatsCommand implements Runnable {
             if (!metricsNamesToPlot.get(0).equals(CliDefaults.DEFAULT_METRIC_NAMES) || isCsv) {
                 filesSaver.saveFiles(metricsAndFiles.getFiles());
             }
-
+        } catch (ResourceAccessException e) {
+            GlobalExceptionHandler.handleResourceAccessError(e);
         } catch (HttpClientErrorException e) {
             GlobalExceptionHandler.handleHttpClientError(e, "Failed to fetch statistics: ");
         } catch (JsonMappingException e) {
