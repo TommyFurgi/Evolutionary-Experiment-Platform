@@ -20,7 +20,8 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
             + "AND e.problemName = :problemName "
             + "AND e.status = :status "
             + "AND e.datetime BETWEEN :startDate AND :endDate "
-            + "AND (:groupName IS NULL OR :groupName = '' OR e.groupName = :groupName)")
+            + "AND (:groupName IS NULL OR :groupName = '' OR e.groupName = :groupName)"
+            + "ORDER BY e.id")
     List<Experiment> findByAlgorithmAndProblemNameAndStatusAndDatetimeBetween(
             @Param("algorithm") String algorithm,
             @Param("problemName") String problemName,
@@ -36,7 +37,8 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
             + "(:problems IS NULL OR e.problemName IN :problems) AND "
             + "(:algorithms IS NULL OR e.algorithm IN :algorithms) AND "
             + "(:metrics IS NULL OR m.metricsName IN :metrics) AND"
-            + "(:groups IS NULL OR e.groupName IN :groups)")
+            + "(:groups IS NULL OR e.groupName IN :groups)"
+            + "ORDER BY e.id")
     List<Experiment> findFilteredExperiments(
             @Param("statuses") Set<String> statuses,
             @Param("problems") Set<String> problems,

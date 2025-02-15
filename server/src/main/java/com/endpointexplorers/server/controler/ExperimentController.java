@@ -30,7 +30,6 @@ public class ExperimentController {
     @PostMapping()
     public ResponseEntity<String> runExperiment(@RequestBody @Valid RunExperimentRequest request) {
         try {
-            System.out.println("Received experiment request: " + request);
             log.info("Received experiment request: {}", request);
             validator.validateExperimentRequest(request);
             int experimentId = service.runExperiment(request);
@@ -44,7 +43,6 @@ public class ExperimentController {
     @PostMapping("/many")
     public ResponseEntity<String> runExperiments(@RequestBody @Valid RunExperimentRequest request) {
         try {
-            System.out.println("Received experiments request: " + request);
             log.info("Received experiments request: {}", request);
             validator.validateExperimentRequest(request);
             service.runExperiments(request);
@@ -68,13 +66,13 @@ public class ExperimentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Experiment> getExperimentById(@PathVariable int id) {
-        log.info("Getting experiment: {}", id);
+        log.info("Getting experiment with id: {}", id);
         return service.getExperimentById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/ready")
+    @GetMapping("/completed")
     public ResponseEntity<List<ExperimentDto>> getDoneExperiments() {
         List<Experiment> experiments = service.getReadyExperiments();
         List<ExperimentDto> experimentDtos = dtoMapper.convertToDtoList(experiments);
@@ -87,7 +85,8 @@ public class ExperimentController {
         try {
             List<Integer> updatedExperimentIds = service.updateGroupForExperiments(request.experimentIds(), request.newGroupName());
             log.info("Updated group for experiments: {}. New group name: {}", updatedExperimentIds, request.newGroupName());
-            return ResponseEntity.ok(String.format("Group updated successfully for experiments: %s", updatedExperimentIds));
+            return ResponseEntity.ok(String.format("Group updated successfully for experiments with id: %s. " +
+                    "New group name: %s", updatedExperimentIds, request.newGroupName()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
         }

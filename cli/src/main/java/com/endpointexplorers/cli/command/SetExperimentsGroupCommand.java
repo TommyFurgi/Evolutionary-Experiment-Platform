@@ -56,7 +56,7 @@ public class SetExperimentsGroupCommand implements Runnable {
                     String.class
             );
 
-            System.out.println("Server response: " + response);
+            System.out.println("Server response: " + response.getBody());
         } catch (ResourceAccessException e) {
             GlobalExceptionHandler.handleResourceAccessError(e);
         } catch (HttpClientErrorException e) {

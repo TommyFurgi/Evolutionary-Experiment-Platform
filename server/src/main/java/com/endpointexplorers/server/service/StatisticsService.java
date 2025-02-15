@@ -6,6 +6,7 @@ import com.endpointexplorers.server.repository.ExperimentRepository;
 import com.endpointexplorers.server.repository.MetricsRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StatisticsService {
     private record TimeRange(Timestamp start, Timestamp end) {
     }
@@ -116,7 +118,6 @@ public class StatisticsService {
         Timestamp startDate = Timestamp.valueOf(startLocal);
         Timestamp endDate = Timestamp.valueOf(endLocal);
 
-        System.out.println("Start Timestamp: " + startDate + ", End Timestamp: " + endDate);
         return new TimeRange(startDate, endDate);
     }
 
@@ -127,7 +128,7 @@ public class StatisticsService {
         if (experiments.isEmpty()) {
             throw new IllegalArgumentException("No experiments found in the specified time interval.");
         }
-        System.out.println("ID of experiments included in our stats table: " + experiments.stream()
+        log.info("ID of experiments included in our stats table: " + experiments.stream()
                 .map(Experiment::getId)
                 .toList());
         return experiments;

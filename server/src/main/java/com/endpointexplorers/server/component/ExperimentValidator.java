@@ -29,36 +29,36 @@ public class ExperimentValidator {
 
     public void validateExperimentRequest(RunExperimentRequest request){
         this.validateExperimentParams(
-                request.getProblemName(),
-                request.getAlgorithm(),
-                request.getMetrics(),
-                request.getEvaluationNumber(),
-                request.getExperimentIterationNumber()
+                request.problemName(),
+                request.algorithm(),
+                request.metrics(),
+                request.evaluationNumber(),
+                request.experimentIterationNumber()
         );
     }
 
     public void validateMultiExperimentRequest(ManyDifferentExperimentRequest request) {
-        if (request.getProblems() == null || request.getProblems().isEmpty()) {
+        if (request.problems() == null || request.problems().isEmpty()) {
             throw new IllegalArgumentException("At least one problem is required.");
         }
-        request.getProblems().forEach(this::validateProblemName);
-        if (request.getAlgorithms() == null || request.getAlgorithms().isEmpty()) {
+        request.problems().forEach(this::validateProblemName);
+        if (request.algorithms() == null || request.algorithms().isEmpty()) {
             throw new IllegalArgumentException("At least one algorithm is required.");
         }
-        request.getAlgorithms().forEach(this::validateAlgorithm);
+        request.algorithms().forEach(this::validateAlgorithm);
 
-        if (request.getMetrics() == null || request.getMetrics().isEmpty()) {
+        if (request.metrics() == null || request.metrics().isEmpty()) {
             throw new IllegalArgumentException("At least one metric is required.");
         }
-        validateMetrics(request.getMetrics());
-        if (request.getEvaluationNumber() == null || request.getEvaluationNumber() <= 0) {
+        validateMetrics(request.metrics());
+        if (request.evaluationNumber() == null || request.evaluationNumber() <= 0) {
             throw new IllegalArgumentException("Evaluation number must be greater than 0.");
         }
-        validateEvaluationNumber(request.getEvaluationNumber());
-        if (request.getExperimentIterationNumber() == null || request.getExperimentIterationNumber() <= 0) {
+        validateEvaluationNumber(request.evaluationNumber());
+        if (request.experimentIterationNumber() == null || request.experimentIterationNumber() <= 0) {
             throw new IllegalArgumentException("Experiment iteration number must be greater than 0.");
         }
-        validateIterationNumber(request.getExperimentIterationNumber());
+        validateIterationNumber(request.experimentIterationNumber());
     }
 
 

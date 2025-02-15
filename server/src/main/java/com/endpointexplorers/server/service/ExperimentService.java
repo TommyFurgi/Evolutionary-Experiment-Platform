@@ -5,11 +5,11 @@ import com.endpointexplorers.server.component.ExperimentValidator;
 import com.endpointexplorers.server.model.Experiment;
 import com.endpointexplorers.server.model.StatusEnum;
 import com.endpointexplorers.server.repository.ExperimentRepository;
+import com.endpointexplorers.server.request.ExperimentListRequest;
 import com.endpointexplorers.server.request.ManyDifferentExperimentRequest;
 import com.endpointexplorers.server.request.RunExperimentRequest;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.analysis.collector.Observations;
@@ -19,7 +19,6 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,12 +27,13 @@ public class ExperimentService {
     private final ExperimentRepository repository;
     private final MetricsService metricsService;
     private final ExperimentValidator validator;
+    private  final PersistenceService experimentSaveService;
 
 
     public void runExperiments(RunExperimentRequest request) {
         Completable completable = Completable.fromCallable(() -> {
             List<Integer> experimentIds = new ArrayList<>();
-            for (int i = 0; i < request.getExperimentIterationNumber(); i++) {
+            for (int i = 0; i < request.experimentIterationNumber(); i++) {
                 try {
                     int expId = runExperiment(request);
                     experimentIds.add(expId);
@@ -51,7 +51,7 @@ public class ExperimentService {
                 .doOnError(error -> log.error("Error occurred while running experiments: ", error))
                 .subscribe();
     }
-    @Transactional
+
     public int runExperiment(RunExperimentRequest request) {
         Experiment experiment = initializeExperiment(request);
         log.info("Running experiment with request: {}", request);
@@ -74,16 +74,16 @@ public class ExperimentService {
     public void runManyDifferentExperiments(ManyDifferentExperimentRequest request) {
         Completable completable = Completable.fromCallable(() -> {
             List<Integer> experimentIds = new ArrayList<>();
-            for (String problem : request.getProblems()) {
-                for (String algorithm : request.getAlgorithms()) {
-                    for (int i = 0; i < request.getExperimentIterationNumber(); i++) {
+            for (String problem : request.problems()) {
+                for (String algorithm : request.algorithms()) {
+                    for (int i = 0; i < request.evaluationNumber(); i++) {
                         RunExperimentRequest singleReq = new RunExperimentRequest(
                                 problem,
                                 algorithm,
-                                request.getMetrics(),
-                                request.getEvaluationNumber(),
-                                request.getExperimentIterationNumber(),
-                                request.getGroupName()
+                                request.metrics(),
+                                request.evaluationNumber(),
+                                request.experimentIterationNumber(),
+                                request.groupName()
                         );
                         int expId = runExperiment(singleReq);
                         experimentIds.add(expId);
@@ -100,8 +100,8 @@ public class ExperimentService {
                 .subscribe();
     }
 
-    private void handleSuccess(Experiment experiment, Observations result, RunExperimentRequest request) {
-        log.info("Experiment completed successfully for problem: {}", request.getProblemName());
+    public void handleSuccess(Experiment experiment, Observations result, RunExperimentRequest request) {
+        log.info("Experiment completed successfully for problem: {}", request.problemName());
 
         Set<String> metricsNames = metricsService.processMetricsNames(result, request);
 
@@ -110,30 +110,32 @@ public class ExperimentService {
 
         metricsService.saveAllMetrics(result, metricsNames, experiment);
         experiment.setStatus(StatusEnum.READY);
-        repository.save(experiment);
+
+        experimentSaveService.saveExperiment(experiment);
+
         result.display();
     }
 
-    private void handleError(Experiment experiment, Throwable throwable) {
+    public void handleError(Experiment experiment, Throwable throwable) {
         experiment.setStatus(StatusEnum.FAILED);
-        Experiment savedExperiment = repository.save(experiment);
+        Experiment savedExperiment = experimentSaveService.saveExperiment(experiment);
         log.error("Experiment with id {} failed: {}", savedExperiment.getId(), throwable.getMessage());
     }
 
     private Experiment initializeExperiment(RunExperimentRequest request) {
-        String groupName = request.getGroupName().isEmpty() ? "none" : request.getGroupName();
+        String groupName = request.groupName().isEmpty() ? "none" : request.groupName();
 
         Experiment experiment = Experiment.builder()
-                .problemName(request.getProblemName().toLowerCase())
-                .algorithm(request.getAlgorithm().toLowerCase())
-                .numberOfEvaluation(request.getEvaluationNumber())
+                .problemName(request.problemName().toLowerCase())
+                .algorithm(request.algorithm().toLowerCase())
+                .numberOfEvaluation(request.evaluationNumber())
                 .status(StatusEnum.IN_PROGRESS)
                 .datetime(new Timestamp(System.currentTimeMillis()))
                 .metricsList(new ArrayList<>())
                 .groupName(groupName)
                 .build();
 
-        Experiment savedExperiment = repository.save(experiment);
+        Experiment savedExperiment = experimentSaveService.saveExperiment(experiment);
         log.info("Experiment with id {} saved successfully: {}", savedExperiment.getId(), experiment);
         return savedExperiment;
     }
@@ -142,7 +144,7 @@ public class ExperimentService {
         return repository.findById(id).map(experiment -> {
             if (experiment.getStatus() == StatusEnum.READY) {
                 experiment.setStatus(StatusEnum.COMPLETED);
-                return repository.save(experiment);
+                return experimentSaveService.saveExperiment(experiment);
             }
             return experiment;
         });
@@ -153,28 +155,47 @@ public class ExperimentService {
 
         for (Experiment experiment : experiments) {
             experiment.setStatus(StatusEnum.COMPLETED);
-            repository.save(experiment);
+            experimentSaveService.saveExperiment(experiment);
         }
 
         return experiments;
     }
 
-    public List<Experiment> getFilteredExperiments(List<String> statuses, List<String> problems, List<String> algorithms, List<String> metrics, List<String> groupNames) {
+    public List<Experiment> getFilteredExperiments(ExperimentListRequest request) {
+        List<String> problems = request.problems();
+        List<String> algorithms = request.algorithms();
+        List<String> metrics = request.metrics();
+        List<String> statuses = request.statuses();
+        List<String> groupNames = request.groupNames();
+
         validator.validateListParams(statuses, problems, algorithms, metrics);
         List<String> parsedMetrics = metrics.stream()
                 .map(metricsService::parseMetricsName)
                 .collect(Collectors.toList());
 
-        Set<String> filteredStatuses = (statuses.isEmpty() || statuses.get(0).isEmpty()) ? null : new HashSet<>(statuses);
-        Set<String> filteredProblems = convertListToLowerCaseSet(problems);
-        Set<String> filteredAlgorithms = convertListToLowerCaseSet(algorithms);
-        Set<String> filteredMetrics = convertListToLowerCaseSet(parsedMetrics);
-        Set<String> filteredGroups = (groupNames.isEmpty() || groupNames.get(0).isEmpty()) ? null : new HashSet<>(groupNames);
+        Set<String> normalizedStatuses = normalizeList(statuses);
+        Set<String> normalizedProblems = normalizeListToSet(problems);
+        Set<String> normalizedAlgorithms = normalizeListToSet(algorithms);
+        Set<String> normalizedMetrics = normalizeListToSet(parsedMetrics);
+        Set<String> normalizedGroups = normalizeList(groupNames);
 
-        return repository.findFilteredExperiments(filteredStatuses, filteredProblems, filteredAlgorithms, filteredMetrics, filteredGroups);
+        return repository.findFilteredExperiments(
+                normalizedStatuses,
+                normalizedProblems,
+                normalizedAlgorithms,
+                normalizedMetrics,
+                normalizedGroups
+        );
     }
 
-    private Set<String> convertListToLowerCaseSet(List<String> list) {
+    private Set<String> normalizeList(List<String> list) {
+        if (list == null || list.isEmpty() || list.get(0).isEmpty()) {
+            return null;
+        }
+        return new HashSet<>(list);
+    }
+
+    private Set<String> normalizeListToSet(List<String> list) {
         if (list == null || list.isEmpty() || list.get(0).isEmpty()) {
             return null;
         }
@@ -183,7 +204,6 @@ public class ExperimentService {
                 .collect(Collectors.toSet());
     }
 
-    @Transactional
     public List<Integer> updateGroupForExperiments(List<Integer> experimentIds, String newGroupName) {
         if (experimentIds == null || experimentIds.isEmpty()) {
             throw new IllegalArgumentException("Experiment IDs cannot be null or empty");
@@ -206,26 +226,24 @@ public class ExperimentService {
             updatedExperiments.add(experiment);
         }
 
-        repository.saveAll(experiments);
+        experimentSaveService.saveAllExperiments(experiments);
         return updatedExperiments.stream()
                 .map(Experiment::getId)
                 .collect(Collectors.toList());
     }
 
-    @Transactional
     public int deleteExperimentById(int id) {
         Experiment experiment = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Experiment with id " + id + " not found"));
-        repository.delete(experiment);
+        experimentSaveService.deleteExperiment(experiment);
         return id;
     }
 
-    @Transactional
     public int deleteExperimentsByGroup(String groupName) {
         List<Experiment> experiments = repository.findByGroupName(groupName);
         int count = experiments.size();
         if (count > 0) {
-            repository.deleteAll(experiments);
+            experimentSaveService.deleteAllExperiments(experiments);
         }
         return count;
     }

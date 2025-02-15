@@ -12,9 +12,9 @@ public class ExecutorFactory {
 
     public Executor createExecutor(RunExperimentRequest request, Instrumenter instrumenter) {
         return new Executor()
-                .withProblem(request.getProblemName())
-                .withAlgorithm(request.getAlgorithm())
-                .withMaxEvaluations(request.getEvaluationNumber())
+                .withProblem(request.problemName())
+                .withAlgorithm(request.algorithm())
+                .withMaxEvaluations(request.evaluationNumber())
                 .withInstrumenter(instrumenter);
     }
 }

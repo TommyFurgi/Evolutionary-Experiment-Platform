@@ -14,10 +14,10 @@ public class InstrumenterFactory {
 
     public Instrumenter createInstrumenter(RunExperimentRequest request, int frequency) {
         Instrumenter instrumenter = new Instrumenter()
-                .withProblem(request.getProblemName())
+                .withProblem(request.problemName())
                 .withFrequency(frequency);
 
-        for (String metricName : request.getMetrics()) {
+        for (String metricName : request.metrics()) {
             Optional<MetricTypeEnum> metricOpt = MetricTypeEnum.fromString(metricName);
             if (metricOpt.isPresent()) {
                 metricOpt.get().attach(instrumenter);
