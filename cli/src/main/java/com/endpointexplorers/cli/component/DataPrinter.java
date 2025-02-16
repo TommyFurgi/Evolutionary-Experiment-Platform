@@ -1,5 +1,7 @@
-package com.endpointexplorers.cli.experiment;
+package com.endpointexplorers.cli.component;
 
+import com.endpointexplorers.cli.experiment.Experiment;
+import com.endpointexplorers.cli.experiment.Metrics;
 import picocli.CommandLine;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.Help.Column;
@@ -41,7 +43,6 @@ public class DataPrinter {
 
         addRowsToTable(table, sortedIterations, iterationToMetricsMap, uniqueMetricNames);
 
-        System.out.println();
         System.out.println(table);
     }
 

@@ -30,8 +30,8 @@ public class RunManyDifferentExperimentCommand implements Runnable {
     @CommandLine.Option(names = {"-e", "--evaluations"}, defaultValue = CliDefaults.DEFAULT_EVALUATION_NUMBER)
     private Integer evaluationNumber;
 
-    @CommandLine.Option(names = {"-n", "--experimentIterationNumber"}, defaultValue = CliDefaults.DEFAULT_EXPERIMENT_ITERATION_NUMBER)
-    private Integer experimentIterationNumber;
+    @CommandLine.Option(names = {"-n", "--experimentIterationNumber"}, defaultValue = CliDefaults.DEFAULT_EXPERIMENTS_NUMBER)
+    private Integer experimentsNumber;
 
     @CommandLine.Option(names = {"-g", "--groupName"}, description = "Name of the group (default: none)", defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
     private String groupName;
@@ -50,7 +50,7 @@ public class RunManyDifferentExperimentCommand implements Runnable {
         requestBody.put("algorithms", algorithms);
         requestBody.put("metrics", metrics);
         requestBody.put("evaluationNumber", evaluationNumber);
-        requestBody.put("experimentIterationNumber", experimentIterationNumber);
+        requestBody.put("experimentsNumber", experimentsNumber);
         requestBody.put("groupName", groupName);
 
         RestTemplate restTemplate = new RestTemplate();
