@@ -27,17 +27,33 @@ public class PersistenceService {
     }
 
     @Transactional
-    public void deleteExperiment(Experiment experiment) {
-        experimentRepository.delete(experiment);
+    public int deleteExperimentById(int experimentId) {
+        metricsRepository.deleteByExperimentId(experimentId);
+        return experimentRepository.deleteById(experimentId);
     }
 
     @Transactional
-    public void deleteAllExperiments(List<Experiment> experiments) {
-        experimentRepository.deleteAll(experiments);
+    public int deleteAllExperimentsByGroupName(String groupName) {
+        List<Experiment> experiments = experimentRepository.findByGroupName(groupName);
+        if (experiments.isEmpty()) {
+            return 0;
+        }
+
+        List<Integer> experimentIds = experiments.stream()
+                .map(Experiment::getId)
+                .toList();
+
+        metricsRepository.deleteByExperimentIds(experimentIds);
+        return experimentRepository.deleteByGroupName(groupName);
     }
 
     @Transactional
     public Metrics saveMetrics(Metrics metrics) {
         return metricsRepository.save(metrics);
+    }
+
+    @Transactional
+    public void updateExperimentsGroup(List<Integer> experimentIds, String groupName) {
+        experimentRepository.updateGroupForExperiments(experimentIds, groupName);
     }
 }

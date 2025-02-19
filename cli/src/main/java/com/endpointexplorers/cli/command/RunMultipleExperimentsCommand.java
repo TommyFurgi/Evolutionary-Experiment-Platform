@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Command(name = "runManyDiff", description = "Run many different experiments for multiple problems/algorithms")
-public class RunManyDifferentExperimentCommand implements Runnable {
+public class RunMultipleExperimentsCommand implements Runnable {
 
     @CommandLine.Option(names = {"-p", "--problems"}, arity = "1..*", description = "List of problems", required = true)
     private List<String> problems;
@@ -36,11 +36,11 @@ public class RunManyDifferentExperimentCommand implements Runnable {
     @CommandLine.Option(names = {"-g", "--groupName"}, description = "Name of the group (default: none)", defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
     private String groupName;
 
-    private final String runManyDifferentExperimentsUrl;
+    private final String runMultipleExperimentsUrl;
 
     @Inject
-    public RunManyDifferentExperimentCommand(@Named("runManyDifferentExperimentsUrl") String runManyDifferentExperimentsUrl) {
-        this.runManyDifferentExperimentsUrl = runManyDifferentExperimentsUrl;
+    public RunMultipleExperimentsCommand(@Named("runMultipleExperimentsUrl") String runMultipleExperimentsUrl) {
+        this.runMultipleExperimentsUrl = runMultipleExperimentsUrl;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class RunManyDifferentExperimentCommand implements Runnable {
 
         System.out.println("Preparing to run many-different-experiments ...");
         try {
-            String response = restTemplate.postForObject(runManyDifferentExperimentsUrl, requestBody, String.class);
+            String response = restTemplate.postForObject(runMultipleExperimentsUrl, requestBody, String.class);
             System.out.println("Server response: " + response);
         } catch (ResourceAccessException e) {
             GlobalExceptionHandler.handleResourceAccessError(e);

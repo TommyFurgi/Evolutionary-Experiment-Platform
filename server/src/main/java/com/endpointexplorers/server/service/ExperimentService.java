@@ -5,10 +5,11 @@ import com.endpointexplorers.server.component.ExperimentValidator;
 import com.endpointexplorers.server.model.Experiment;
 import com.endpointexplorers.server.model.StatusEnum;
 import com.endpointexplorers.server.repository.ExperimentRepository;
+import com.endpointexplorers.server.request.BaseRunExperimentRequest;
 import com.endpointexplorers.server.request.ExperimentListRequest;
-import com.endpointexplorers.server.request.ManyDifferentExperimentRequest;
-import com.endpointexplorers.server.request.RunExperimentRequest;
-import io.reactivex.rxjava3.core.Completable;
+import com.endpointexplorers.server.request.RunMultipleExperimentsRequest;
+import com.endpointexplorers.server.request.RunExperimentsRequest;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,101 +31,96 @@ public class ExperimentService {
     private  final PersistenceService experimentSaveService;
 
 
-    public void runExperiments(RunExperimentRequest request) {
-        Completable completable = Completable.fromCallable(() -> {
-            List<Integer> experimentIds = new ArrayList<>();
-            for (int i = 0; i < request.experimentIterationNumber(); i++) {
-                try {
-                    int expId = runExperiment(request);
-                    experimentIds.add(expId);
-                } catch (Exception e) {
-                    log.error("Something failed for one of the experiments. List of created experiments without an error: {}", experimentIds, e);
-                    throw e;
-                }
-            }
-            return experimentIds;
-        });
+    public List<Integer> runExperiments(BaseRunExperimentRequest request) {
+        List<RunExperimentsRequest> requests;
 
-        completable
-                .subscribeOn(Schedulers.computation())
-                .doOnComplete(() -> log.info("All experiments completed successfully."))
-                .doOnError(error -> log.error("Error occurred while running experiments: ", error))
-                .subscribe();
-    }
-
-    public int runExperiment(RunExperimentRequest request) {
-        Experiment experiment = initializeExperiment(request);
-        log.info("Running experiment with request: {}", request);
-
-        try {
-            observableFactory.createExperimentObservable(request)
-                    .subscribeOn(Schedulers.computation())
-                    .subscribe(
-                            result -> handleSuccess(experiment, result, request),
-                            throwable -> handleError(experiment, throwable)
-                    );
-
-            return experiment.getId();
-        } catch (Exception e) {
-            log.error("Transaction failed for experiment: {}", experiment.getId(), e);
-            throw e;
+        switch (request.getClass().getSimpleName()) {
+            case "RunExperimentsRequest":
+                RunExperimentsRequest runExperimentsRequest = (RunExperimentsRequest) request;
+                validator.validateRunMultipleExperimentsRequest(runExperimentsRequest);
+                requests = new ArrayList<>(List.of(runExperimentsRequest));
+                break;
+            case "RunMultipleExperimentsRequest":
+                RunMultipleExperimentsRequest runMultipleExperimentsRequest = (RunMultipleExperimentsRequest) request;
+                validator.validateRunMultipleExperimentsRequest(runMultipleExperimentsRequest);
+                requests = generateExperiments(runMultipleExperimentsRequest);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported request type");
         }
+
+        return runExperimentsInternal(requests);
     }
 
-    public void runManyDifferentExperiments(ManyDifferentExperimentRequest request) {
-        Completable completable = Completable.fromCallable(() -> {
-            List<Integer> experimentIds = new ArrayList<>();
-            for (String problem : request.problems()) {
-                for (String algorithm : request.algorithms()) {
-                    for (int i = 0; i < request.evaluationNumber(); i++) {
-                        RunExperimentRequest singleReq = new RunExperimentRequest(
-                                problem,
-                                algorithm,
-                                request.metrics(),
-                                request.evaluationNumber(),
-                                request.experimentIterationNumber(),
-                                request.groupName()
-                        );
-                        int expId = runExperiment(singleReq);
-                        experimentIds.add(expId);
-                    }
-                }
-            }
-            return experimentIds;
-        });
+    private List<Integer> runExperimentsInternal(List<RunExperimentsRequest> requests) {
+        List<Integer> experimentIds = new ArrayList<>();
 
-        completable
+        Observable<Integer> experimentObservable = Observable.fromIterable(requests)
+                .flatMap(singleReq ->
+                        Observable.range(0, singleReq.experimentsNumber())
+                                .flatMap(i -> {
+                                    Experiment experiment = initializeExperiment(singleReq);
+                                    experimentIds.add(experiment.getId());
+
+                                    return Observable.fromCallable(() -> {
+                                        try {
+                                            runSingleExperiment(singleReq, experiment);
+                                            return experiment.getId();
+                                        } catch (Exception e) {
+                                            log.error("Experiment {} failed", experiment.getId(), e);
+                                            throw e;
+                                        }
+                                    }).subscribeOn(Schedulers.io());
+                                })
+                );
+
+        experimentObservable
+                .observeOn(Schedulers.single())
+                .subscribe(
+                        id -> log.info("Experiment {} completed successfully.", id),
+                        error -> log.error("Error occurred while running experiments", error),
+                        () -> log.info("All experiments started successfully.")
+                );
+
+        return experimentIds;
+    }
+
+    private List<RunExperimentsRequest> generateExperiments(RunMultipleExperimentsRequest request) {
+        return request.problems().stream()
+                .flatMap(problem -> request.algorithms().stream()
+                        .map(algorithm -> new RunExperimentsRequest(
+                                problem, algorithm, request.metrics(),
+                                request.evaluationNumber(), request.experimentsNumber(), request.groupName())))
+                .collect(Collectors.toList());
+    }
+
+    public void runSingleExperiment(RunExperimentsRequest request, Experiment experiment) {
+        observableFactory.createExperimentObservable(request)
                 .subscribeOn(Schedulers.computation())
-                .doOnComplete(() -> log.info("All experiments completed successfully."))
-                .doOnError(error -> log.error("Error occurred while running experiments: ", error))
-                .subscribe();
+                .subscribe(
+                        result -> processExperimentSuccess(experiment, result, request),
+                        throwable -> processExperimentFailure(experiment, throwable)
+                );
     }
 
-    public void handleSuccess(Experiment experiment, Observations result, RunExperimentRequest request) {
-        log.info("Experiment completed successfully for problem: {}", request.problemName());
+    public void processExperimentSuccess(Experiment experiment, Observations result, RunExperimentsRequest request) {
+        log.info("Experiment {} completed successfully.", experiment.getId());
 
         Set<String> metricsNames = metricsService.processMetricsNames(result, request);
-
-        log.debug("Result keys: {}", result.keys());
-        log.debug("Metrics names: {}", metricsNames);
+        log.debug("Result keys: {}, Metrics names: {}", result.keys(), metricsNames);
 
         metricsService.saveAllMetrics(result, metricsNames, experiment);
         experiment.setStatus(StatusEnum.READY);
-
         experimentSaveService.saveExperiment(experiment);
-
-        result.display();
     }
 
-    public void handleError(Experiment experiment, Throwable throwable) {
+    public void processExperimentFailure(Experiment experiment, Throwable throwable) {
         experiment.setStatus(StatusEnum.FAILED);
         Experiment savedExperiment = experimentSaveService.saveExperiment(experiment);
         log.error("Experiment with id {} failed: {}", savedExperiment.getId(), throwable.getMessage());
     }
 
-    private Experiment initializeExperiment(RunExperimentRequest request) {
-        String groupName = request.groupName().isEmpty() ? "none" : request.groupName();
-
+    private Experiment initializeExperiment(RunExperimentsRequest request) {
         Experiment experiment = Experiment.builder()
                 .problemName(request.problemName().toLowerCase())
                 .algorithm(request.algorithm().toLowerCase())
@@ -132,12 +128,10 @@ public class ExperimentService {
                 .status(StatusEnum.IN_PROGRESS)
                 .datetime(new Timestamp(System.currentTimeMillis()))
                 .metricsList(new ArrayList<>())
-                .groupName(groupName)
+                .groupName(request.groupName().isEmpty() ? "none" : request.groupName())
                 .build();
 
-        Experiment savedExperiment = experimentSaveService.saveExperiment(experiment);
-        log.info("Experiment with id {} saved successfully: {}", savedExperiment.getId(), experiment);
-        return savedExperiment;
+        return experimentSaveService.saveExperiment(experiment);
     }
 
     public Optional<Experiment> getExperimentById(int id) {
@@ -213,38 +207,30 @@ public class ExperimentService {
             throw new IllegalArgumentException("Group name cannot be null");
         }
 
-        List<Experiment> experiments = repository.findAllById(experimentIds);
         String groupName = newGroupName.isEmpty() ? "none" : newGroupName;
-
-        if (experiments.isEmpty()) {
+        List<Experiment> experimentsInDb = repository.findAllById(experimentIds);
+        if (experimentsInDb.isEmpty()) {
             throw new IllegalArgumentException("No experiments found for the provided IDs");
         }
 
-        List<Experiment> updatedExperiments = new ArrayList<>();
-        for (Experiment experiment : experiments) {
-            experiment.setGroupName(groupName);
-            updatedExperiments.add(experiment);
-        }
-
-        experimentSaveService.saveAllExperiments(experiments);
-        return updatedExperiments.stream()
+        List<Integer> existingExperimentIds = experimentsInDb.stream()
                 .map(Experiment::getId)
                 .collect(Collectors.toList());
+
+        experimentSaveService.updateExperimentsGroup(existingExperimentIds, groupName);
+
+        return existingExperimentIds;
     }
 
     public int deleteExperimentById(int id) {
-        Experiment experiment = repository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Experiment with id " + id + " not found"));
-        experimentSaveService.deleteExperiment(experiment);
+        int deleted = experimentSaveService.deleteExperimentById(id);
+        if (deleted == 0) {
+            throw new NoSuchElementException("Experiment with id " + id + " not found");
+        }
         return id;
     }
 
     public int deleteExperimentsByGroup(String groupName) {
-        List<Experiment> experiments = repository.findByGroupName(groupName);
-        int count = experiments.size();
-        if (count > 0) {
-            experimentSaveService.deleteAllExperiments(experiments);
-        }
-        return count;
+        return experimentSaveService.deleteAllExperimentsByGroupName(groupName);
     }
 }

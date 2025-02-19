@@ -17,16 +17,9 @@ public class ConfigModule extends AbstractModule {
 
     @Provides
     @Singleton
-    @Named("runExperimentUrl")
-    public String provideRunExperimentUrl(@Named("baseUrl") String baseUrl) {
+    @Named("runExperimentsUrl")
+    public String provideRunExperimentsUrl(@Named("baseUrl") String baseUrl) {
         return baseUrl + "experiments";
-    }
-
-    @Provides
-    @Singleton
-    @Named("runManyExperimentsUrl")
-    public String provideRunManyExperimentsUrl(@Named("baseUrl") String baseUrl) {
-        return baseUrl + "experiments/many";
     }
 
     @Provides
@@ -59,9 +52,9 @@ public class ConfigModule extends AbstractModule {
 
     @Provides
     @Singleton
-    @Named("runManyDifferentExperimentsUrl")
-    public String provideRunManyDifferentExperimentsUrl(@Named("baseUrl") String baseUrl) {
-        return baseUrl + "experiments/manyDifferent";
+    @Named("runMultipleExperimentsUrl")
+    public String provideRunMultipleExperimentsUrl(@Named("baseUrl") String baseUrl) {
+        return baseUrl + "experiments/multi";
     }
 
     @Provides

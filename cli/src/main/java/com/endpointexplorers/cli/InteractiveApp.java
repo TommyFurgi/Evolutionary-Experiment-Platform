@@ -26,11 +26,11 @@ public class InteractiveApp implements Runnable {
         Scanner scanner = new Scanner(System.in);
         CommandLine cmd = new CommandLine(this);
 
-        cmd.addSubcommand("run", injector.getInstance(RunExperimentCommand.class));
+        cmd.addSubcommand("run", injector.getInstance(RunExperimentsCommand.class));
         cmd.addSubcommand("get", injector.getInstance(GetExperimentCommand.class));
         cmd.addSubcommand("list", injector.getInstance(GetExperimentsListCommand.class));
         cmd.addSubcommand("getStats", injector.getInstance(GetStatsCommand.class));
-        cmd.addSubcommand("runManyDiff", injector.getInstance(RunManyDifferentExperimentCommand.class));
+        cmd.addSubcommand("runMulti", injector.getInstance(RunMultipleExperimentsCommand.class));
         cmd.addSubcommand("setGroup", injector.getInstance(SetExperimentsGroupCommand.class));
         cmd.addSubcommand("delete", injector.getInstance(DeleteExperimentCommand.class));
         cmd.addSubcommand("exit", new ExitCommand());

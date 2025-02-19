@@ -1,10 +1,9 @@
 package com.endpointexplorers.server.service;
 
-
 import com.endpointexplorers.server.mapper.MetricsNameMapper;
 import com.endpointexplorers.server.model.Experiment;
 import com.endpointexplorers.server.model.Metrics;
-import com.endpointexplorers.server.request.RunExperimentRequest;
+import com.endpointexplorers.server.request.RunExperimentsRequest;
 import lombok.RequiredArgsConstructor;
 import org.moeaframework.analysis.collector.Observation;
 import org.moeaframework.analysis.collector.Observations;
@@ -30,7 +29,7 @@ public class MetricsService {
         persistenceService.saveMetrics(metrics);
     }
 
-    public Set<String> processMetricsNames(Observations result, RunExperimentRequest request) {
+    public Set<String> processMetricsNames(Observations result, RunExperimentsRequest request) {
         Set<String> metricsNames;
         if (request.metrics().size() == 1 && request.metrics().getFirst().equals("all")) {
             metricsNames = result.keys();

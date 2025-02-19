@@ -22,7 +22,7 @@ public class DeleteExperimentCommand implements Runnable {
 
     @Inject
     public DeleteExperimentCommand(@Named("deleteExperimentGroupUrl") String deleteExperimentGroupUrl,
-                                   @Named("deleteExperimentGroupUrl") String deleteExperimentIdUrl) {
+                                   @Named("deleteExperimentIdUrl") String deleteExperimentIdUrl) {
         this.deleteExperimentGroupUrl = deleteExperimentGroupUrl;
         this.deleteExperimentIdUrl = deleteExperimentIdUrl;
     }

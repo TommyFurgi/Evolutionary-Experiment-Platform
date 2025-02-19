@@ -5,7 +5,6 @@ import com.endpointexplorers.cli.handler.GlobalExceptionHandler;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -16,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Command(name = "run", description = "Run an experiment on the server ( run UF1 e-MOEA )")
-public class RunExperimentCommand implements Runnable {
+public class RunExperimentsCommand implements Runnable {
 
     @Parameters(index = "0", description = "Name of the problem to solve")
     private String problemName;
@@ -39,7 +38,7 @@ public class RunExperimentCommand implements Runnable {
     private final String runExperimentsUrl;
 
     @Inject
-    public RunExperimentCommand(@Named("runExperimentsUrl") String runExperimentsUrl) {
+    public RunExperimentsCommand(@Named("runExperimentsUrl") String runExperimentsUrl) {
         this.runExperimentsUrl = runExperimentsUrl;
     }
 
