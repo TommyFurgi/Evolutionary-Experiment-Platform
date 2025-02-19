@@ -5,7 +5,7 @@ import com.endpointexplorers.server.mapper.MetricsNameMapper;
 import com.endpointexplorers.server.model.Experiment;
 import com.endpointexplorers.server.model.Metrics;
 import com.endpointexplorers.server.repository.MetricsRepository;
-import com.endpointexplorers.server.request.RunExperimentRequest;
+import com.endpointexplorers.server.request.RunExperimentsRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,9 +22,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MetricsServiceTest {
-
     @Mock
     private MetricsRepository metricsRepository;
+    @Mock
+    private PersistenceService persistenceService;
 
     @InjectMocks
     private MetricsService metricsService;
@@ -40,6 +41,12 @@ class MetricsServiceTest {
         experiment.setId(1);
         int evaluationNumber = 100;
         float value = 123.45f;
+
+        when(persistenceService.saveMetrics(any(Metrics.class)))
+                .thenAnswer(invocation -> {
+                    Metrics metrics = invocation.getArgument(0);
+                    return metricsRepository.save(metrics);
+                });
 
         // when
         metricsService.saveMetrics(metricsName, experiment, evaluationNumber, value);
@@ -59,10 +66,10 @@ class MetricsServiceTest {
     void processMetricsNames_all() {
         // given
         Observations observations = mock(Observations.class);
-        RunExperimentRequest request = mock(RunExperimentRequest.class);
+        RunExperimentsRequest request = mock(RunExperimentsRequest.class);
 
         //  getMetrics() zwraca listę ["all"]
-        when(request.getMetrics()).thenReturn(List.of("all"));
+        when(request.metrics()).thenReturn(List.of("all"));
 
         Set<String> keys = new HashSet<>(Arrays.asList("Approximation Set", "Population", "hypervolume", "spacing"));
         when(observations.keys()).thenReturn(keys);
@@ -83,8 +90,8 @@ class MetricsServiceTest {
     void processMetricsNames_custom() {
         // given
         Observations observations = mock(Observations.class);
-        RunExperimentRequest request = mock(RunExperimentRequest.class);
-        when(request.getMetrics()).thenReturn(List.of("HV", "Spacing"));
+        RunExperimentsRequest request = mock(RunExperimentsRequest.class);
+        when(request.metrics()).thenReturn(List.of("HV", "Spacing"));
 
         // np. gdy HV -> "hypervolume"
         try (MockedStatic<MetricsNameMapper> utilities = Mockito.mockStatic(MetricsNameMapper.class)) {
@@ -107,39 +114,35 @@ class MetricsServiceTest {
         Observation obs2 = mock(Observation.class);
         when(observations.iterator()).thenAnswer(inv -> Arrays.asList(obs1, obs2).iterator());
 
-        // Metryki
-        Set<String> metricsNames = Set.of("hypervolume", "spacing");
-        Experiment experiment = new Experiment();
-        experiment.setId(9);
-
-        //  obs1.get("hypervolume") -> np. 10.0, obs1.get("spacing") -> 20.0, obs1.getNFE() -> 100
         when(obs1.get("hypervolume")).thenReturn(10.0);
         when(obs1.get("spacing")).thenReturn(20.0);
         when(obs1.getNFE()).thenReturn(100);
 
-        // obs2.get("hypervolume") -> 30.0, obs2.get("spacing") -> 40.0, obs2.getNFE() -> 200
         when(obs2.get("hypervolume")).thenReturn(30.0);
         when(obs2.get("spacing")).thenReturn(40.0);
         when(obs2.getNFE()).thenReturn(200);
+
+        Set<String> metricsNames = Set.of("hypervolume", "spacing");
+        Experiment experiment = new Experiment();
+        experiment.setId(9);
+
+        when(persistenceService.saveMetrics(any(Metrics.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         metricsService.saveAllMetrics(observations, metricsNames, experiment);
 
         // then
-        verify(metricsRepository, times(4)).save(any(Metrics.class));
+        verify(persistenceService, times(4)).saveMetrics(any(Metrics.class));
 
         ArgumentCaptor<Metrics> captor = ArgumentCaptor.forClass(Metrics.class);
-        verify(metricsRepository, times(4)).save(captor.capture());
+        verify(persistenceService, times(4)).saveMetrics(captor.capture());
 
         List<Metrics> allMetrics = captor.getAllValues();
-        // Obs1, hypervolume => value=10, iteration=100
-        // Obs1, spacing => value=20, iteration=100
-        // Obs2, hypervolume => value=30, iteration=200
-        // Obs2, spacing => value=40, iteration=200
-
         Set<String> combos = allMetrics.stream()
-                .map(m -> m.getMetricsName()+"-"+m.getIterationNumber()+"-"+m.getValue())
+                .map(m -> m.getMetricsName() + "-" + m.getIterationNumber() + "-" + m.getValue())
                 .collect(Collectors.toSet());
+
         assertTrue(combos.contains("hypervolume-100-10.0"));
         assertTrue(combos.contains("spacing-100-20.0"));
         assertTrue(combos.contains("hypervolume-200-30.0"));
