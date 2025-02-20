@@ -1,6 +1,6 @@
 package com.endpointexplorers.server.component;
 
-import com.endpointexplorers.server.request.RunExperimentRequest;
+import com.endpointexplorers.server.request.RunExperimentsRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.Executor;
 import org.moeaframework.Instrumenter;
@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExecutorFactory {
 
-    public Executor createExecutor(RunExperimentRequest request, Instrumenter instrumenter) {
+    public Executor createExecutor(RunExperimentsRequest request, Instrumenter instrumenter) {
         return new Executor()
-                .withProblem(request.getProblemName())
-                .withAlgorithm(request.getAlgorithm())
-                .withMaxEvaluations(request.getEvaluationNumber())
+                .withProblem(request.problemName())
+                .withAlgorithm(request.algorithm())
+                .withMaxEvaluations(request.evaluationNumber())
                 .withInstrumenter(instrumenter);
     }
 }

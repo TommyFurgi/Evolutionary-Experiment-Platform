@@ -1,7 +1,11 @@
-package com.endpointexplorers.cli.experiment;
+package com.endpointexplorers.cli.component;
 
-import com.endpointexplorers.cli.config.CliConfig;
+import com.endpointexplorers.cli.experiment.Experiment;
+import com.endpointexplorers.cli.handler.GlobalExceptionHandler;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -12,11 +16,17 @@ import java.util.concurrent.TimeUnit;
 import static com.endpointexplorers.cli.experiment.ExperimentMapper.parseExperimentList;
 
 public class ScheduledExperimentFetcher {
-    private static final int INITIAL_DELAY = 4;
-    private static final int PERIOD = 2;
+    private static final int INITIAL_DELAY = 12;
+    private static final int PERIOD = 4;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final RestTemplate restTemplate = new RestTemplate();
+    private boolean connectionEstablished = false;
+    private final String completedExperimentsUrl;
 
+    @Inject
+    public ScheduledExperimentFetcher(@Named("getCompletedExperimentsUrl") String completedExperimentsUrl) {
+        this.completedExperimentsUrl = completedExperimentsUrl;
+    }
 
     public void startRequesting() {
         scheduler.scheduleAtFixedRate(this::sendRequest, INITIAL_DELAY, PERIOD, TimeUnit.SECONDS);
@@ -24,11 +34,14 @@ public class ScheduledExperimentFetcher {
 
     private void sendRequest() {
         try {
-            String Url = CliConfig.CHECK_STATUS_URL;
-            ResponseEntity<String> response = restTemplate.getForEntity(Url, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(completedExperimentsUrl, String.class);
             handleResponse(response);
+            connectionEstablished = true;
+        } catch (ResourceAccessException e) {
+            if (connectionEstablished)
+                GlobalExceptionHandler.handleResourceAccessError(e);
         } catch (Exception e) {
-            System.err.println("Error while getting experiment: " + e.getMessage());
+            System.err.println("Unable to fetch experiment data: " + e.getMessage());
         }
     }
 

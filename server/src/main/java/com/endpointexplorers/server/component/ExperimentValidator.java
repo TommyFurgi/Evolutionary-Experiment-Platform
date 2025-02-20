@@ -2,8 +2,8 @@ package com.endpointexplorers.server.component;
 
 import com.endpointexplorers.server.model.MetricTypeEnum;
 import com.endpointexplorers.server.model.StatusEnum;
-import com.endpointexplorers.server.request.ManyDifferentExperimentRequest;
-import com.endpointexplorers.server.request.RunExperimentRequest;
+import com.endpointexplorers.server.request.RunMultipleExperimentsRequest;
+import com.endpointexplorers.server.request.RunExperimentsRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.moeaframework.core.spi.AlgorithmFactory;
 import org.moeaframework.core.spi.ProblemFactory;
@@ -19,66 +19,45 @@ public class ExperimentValidator {
     private final Set<String> allRegisteredProblems = ProblemFactory.getInstance().getAllRegisteredProblems();
     private final Set<String> allAlgorithms = AlgorithmFactory.getInstance().getAllDiagnosticToolAlgorithms();
 
-    public void validateExperimentParams(String problemName, String algorithm, List<String> metrics, int evaluationNumber, int iterationNumber) {
-        validateProblemName(problemName);
-        validateAlgorithm(algorithm);
-        validateMetrics(metrics);
-        validateEvaluationNumber(evaluationNumber);
-        validateIterationNumber(iterationNumber);
+    public void validateRunMultipleExperimentsRequest(RunExperimentsRequest request) {
+        validateProblemName(request.problemName());
+        validateAlgorithm(request.algorithm());
+        validateMetrics(request.metrics());
+        validateEvaluationNumber(request.evaluationNumber());
+        validateExperimentsNumber(request.experimentsNumber());
     }
 
-    public void validateExperimentRequest(RunExperimentRequest request){
-        this.validateExperimentParams(
-                request.getProblemName(),
-                request.getAlgorithm(),
-                request.getMetrics(),
-                request.getEvaluationNumber(),
-                request.getExperimentIterationNumber()
-        );
-    }
-
-    public void validateMultiExperimentRequest(ManyDifferentExperimentRequest request) {
-        if (request.getProblems() == null || request.getProblems().isEmpty()) {
+    public void validateRunMultipleExperimentsRequest(RunMultipleExperimentsRequest request) {
+        if (request.problems() == null || request.problems().isEmpty()) {
             throw new IllegalArgumentException("At least one problem is required.");
         }
-        request.getProblems().forEach(this::validateProblemName);
-        if (request.getAlgorithms() == null || request.getAlgorithms().isEmpty()) {
+        if (request.algorithms() == null || request.algorithms().isEmpty()) {
             throw new IllegalArgumentException("At least one algorithm is required.");
         }
-        request.getAlgorithms().forEach(this::validateAlgorithm);
 
-        if (request.getMetrics() == null || request.getMetrics().isEmpty()) {
-            throw new IllegalArgumentException("At least one metric is required.");
-        }
-        validateMetrics(request.getMetrics());
-        if (request.getEvaluationNumber() == null || request.getEvaluationNumber() <= 0) {
-            throw new IllegalArgumentException("Evaluation number must be greater than 0.");
-        }
-        validateEvaluationNumber(request.getEvaluationNumber());
-        if (request.getExperimentIterationNumber() == null || request.getExperimentIterationNumber() <= 0) {
-            throw new IllegalArgumentException("Experiment iteration number must be greater than 0.");
-        }
-        validateIterationNumber(request.getExperimentIterationNumber());
+        request.problems().forEach(this::validateProblemName);
+        request.algorithms().forEach(this::validateAlgorithm);
+        validateMetrics(request.metrics());
+        validateEvaluationNumber(request.evaluationNumber());
+        validateExperimentsNumber(request.experimentsNumber());
     }
-
 
     public void validateStatsParams(String problemName, String algorithm, Timestamp startDate, Timestamp endDate, List<String> metrics) {
         validateProblemName(problemName);
         validateAlgorithm(algorithm);
         validateDates(startDate, endDate);
-        if (!metrics.isEmpty() && !metrics.get(0).equals("none"))
-            this.validateMetrics(metrics);
+        validateMetrics(metrics);
     }
 
-    public void validateListParams(List<String> statuses, List<String> problemName, List<String> algorithm, List<String> metrics) {
+    public void validateListParams(List<String> statuses, List<String> problems, List<String> algorithms, List<String> metrics) {
         statuses.forEach(this::validateStatus);
-        problemName.forEach(this::validateProblemName);
-        algorithm.forEach(this::validateAlgorithm);
-        if (!metrics.isEmpty())
+        problems.forEach(this::validateProblemName);
+        algorithms.forEach(this::validateAlgorithm);
+        if (metrics != null && !metrics.isEmpty())
             validateMetrics(metrics);
     }
 
-        private void validateProblemName(String problemName) {
+    private void validateProblemName(String problemName) {
         if (!allRegisteredProblems.contains(problemName)) {
             throw new IllegalArgumentException("Problem not found: " + problemName);
         }
@@ -94,34 +73,22 @@ public class ExperimentValidator {
         if (metrics == null || metrics.isEmpty()) {
             throw new IllegalArgumentException("Metrics list cannot be empty.");
         }
-
-        for (String metricName : metrics) {
-            if (MetricTypeEnum.fromString(metricName).isEmpty()) {
-                throw new IllegalArgumentException("Unknown metric specified: " + metricName);
+        for (String metric : metrics) {
+            if (MetricTypeEnum.fromString(metric).isEmpty()) {
+                throw new IllegalArgumentException("Unknown metric specified: " + metric);
             }
-        }
-    }
+        }    }
 
-    private void validateEvaluationNumber(int evaluationNumber) {
-        if (evaluationNumber <= 0) {
-            throw new IllegalArgumentException("Evaluation number must be greater than 0");
-        }
-    }
-
-    private void validateIterationNumber(int iterationNumber) {
-        if (iterationNumber <= 0) {
-            throw new IllegalArgumentException("Iteration number must be greater than 0");
+    private void validateNumber(Integer number, String fieldName) {
+        if (number == null || number <= 0) {
+            throw new IllegalArgumentException(fieldName + " must be greater than 0.");
         }
     }
 
     private void validateDates(Timestamp startDate, Timestamp endDate) {
-        if (startDate == null) {
-            throw new IllegalArgumentException("Start date cannot be null.");
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Start and end dates cannot be null.");
         }
-        if (endDate == null) {
-            throw new IllegalArgumentException("End date cannot be null.");
-        }
-
         if (startDate.after(endDate)) {
             throw new IllegalArgumentException("Start date cannot be after end date.");
         }
@@ -133,5 +100,15 @@ public class ExperimentValidator {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Unknown status specified: " + experimentStatus);
         }
+    }
+
+    private void validateEvaluationNumber(Integer evaluationsNumber) {
+        if (evaluationsNumber == null || evaluationsNumber <= 0)
+            throw new IllegalArgumentException("Evaluations number must be greater than 0.");
+    }
+
+    private void validateExperimentsNumber(Integer experimentsNumber) {
+        if (experimentsNumber == null || experimentsNumber <= 0)
+            throw new IllegalArgumentException("Experiments number number must be greater than 0.");
     }
 }

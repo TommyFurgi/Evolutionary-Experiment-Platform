@@ -1,12 +1,14 @@
 package com.endpointexplorers.cli.command;
 
-import com.endpointexplorers.cli.config.CliConfig;
 import com.endpointexplorers.cli.config.CliDefaults;
 import com.endpointexplorers.cli.handler.GlobalExceptionHandler;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import picocli.CommandLine;
 
@@ -31,10 +33,15 @@ public class SetExperimentsGroupCommand implements Runnable {
             defaultValue = CliDefaults.DEFAULT_GROUP_VALUE)
     private String groupName;
 
+    private final String setGroupNameUrl;
+
+    @Inject
+    public SetExperimentsGroupCommand(@Named("setGroupNameUrl") String setGroupNameUrl) {
+        this.setGroupNameUrl = setGroupNameUrl;
+    }
+
     @Override
     public void run() {
-        String url = CliConfig.SET_GROUP_NAME;
-
         try {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("experimentIds", experiments);
@@ -43,13 +50,15 @@ public class SetExperimentsGroupCommand implements Runnable {
             RestTemplate restTemplate = new RestTemplate();
 
             ResponseEntity<String> response = restTemplate.exchange(
-                    url,
+                    setGroupNameUrl,
                     HttpMethod.PUT,
                     new HttpEntity<>(requestBody),
                     String.class
             );
 
-            System.out.println("Server response: " + response);
+            System.out.println("Server response: " + response.getBody());
+        } catch (ResourceAccessException e) {
+            GlobalExceptionHandler.handleResourceAccessError(e);
         } catch (HttpClientErrorException e) {
             GlobalExceptionHandler.handleHttpClientError(e, "Error while updating group for experiments: ");
         }

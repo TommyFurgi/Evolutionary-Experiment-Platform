@@ -1,5 +1,6 @@
 package com.endpointexplorers.server.component;
 
+import com.endpointexplorers.server.request.RunExperimentsRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,15 +34,15 @@ class ExperimentValidatorTest {
 
     @Test
     void validateProblemNameOk() {
-        assertDoesNotThrow(() -> validator.validateExperimentParams("uf1", "nsga-ii",
-                List.of("spacing"), 1000, 1));
+        assertDoesNotThrow(() -> validator.validateRunMultipleExperimentsRequest(new RunExperimentsRequest(
+                "uf1", "nsga-ii", List.of("spacing"), 1000, 1, "")));
     }
 
     @Test
     void validateProblemNameNotFound() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                validator.validateExperimentParams("xxx", "nsga-ii",
-                        List.of("hypervolume"), 1000, 1)
+                validator.validateRunMultipleExperimentsRequest(new RunExperimentsRequest(
+                        "xxx", "nsga-ii", List.of("hypervolume"), 1000, 1, ""))
         );
         assertTrue(ex.getMessage().contains("Problem not found: xxx"));
     }
@@ -49,8 +50,8 @@ class ExperimentValidatorTest {
     @Test
     void validateAlgorithmNotFound() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                validator.validateExperimentParams("uf1", "fancy-algo",
-                        List.of("hypervolume"), 1000, 1)
+                validator.validateRunMultipleExperimentsRequest(new RunExperimentsRequest(
+                        "uf1", "fancy-algo", List.of("hypervolume"), 1000, 1, ""))
         );
         assertTrue(ex.getMessage().contains("Algorithm not found: fancy-algo"));
     }
@@ -58,8 +59,8 @@ class ExperimentValidatorTest {
     @Test
     void validateMetricsEmpty() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                validator.validateExperimentParams("uf1", "nsga-ii",
-                        List.of(), 1000, 1)
+                validator.validateRunMultipleExperimentsRequest(new RunExperimentsRequest(
+                        "uf1", "nsga-ii", List.of(), 1000, 1, ""))
         );
         assertTrue(ex.getMessage().contains("Metrics list cannot be empty."));
     }
@@ -67,8 +68,8 @@ class ExperimentValidatorTest {
     @Test
     void validateMetricsUnknown() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                validator.validateExperimentParams("uf1", "nsga-ii",
-                        List.of("unknownMetric"), 1000, 1)
+                validator.validateRunMultipleExperimentsRequest(new RunExperimentsRequest(
+                        "uf1", "nsga-ii", List.of("unknownMetric"), 1000, 1, ""))
         );
         assertTrue(ex.getMessage().contains("Unknown metric specified: unknownMetric"));
     }
@@ -76,19 +77,19 @@ class ExperimentValidatorTest {
     @Test
     void validateEvaluationNumberZeroOrNegative() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                validator.validateExperimentParams("uf1", "nsga-ii",
-                        List.of("spacing"), -1, 1)
+                validator.validateRunMultipleExperimentsRequest(new RunExperimentsRequest(
+                        "uf1", "nsga-ii", List.of("spacing"), -1, 1, ""))
         );
-        assertTrue(ex.getMessage().contains("Evaluation number must be greater than 0"));
+        assertTrue(ex.getMessage().contains("Evaluations number must be greater than 0."));
     }
 
     @Test
     void validateIterationNumberNegative() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                validator.validateExperimentParams("uf1", "nsga-ii",
-                        List.of("spacing"), 100, -5)
+                validator.validateRunMultipleExperimentsRequest(new RunExperimentsRequest(
+                        "uf1", "nsga-ii", List.of("spacing"), 100, -5, ""))
         );
-        assertTrue(ex.getMessage().contains("Iteration number must be greater than 0"));
+        assertTrue(ex.getMessage().contains("Experiments number number must be greater than 0."));
     }
 
     @Test
@@ -105,10 +106,10 @@ class ExperimentValidatorTest {
     @Test
     void validateDatesNullEnd() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                validator.validateStatsParams("uf1", "gde3",
+                validator.validateStatsParams("uf1", "e-moea",
                         Timestamp.valueOf("2024-01-01 00:00:00"), null, new ArrayList<>())
         );
-        assertTrue(ex.getMessage().contains("End date cannot be null."));
+        assertTrue(ex.getMessage().contains("Start and end dates cannot be null."));
     }
 
     @Test

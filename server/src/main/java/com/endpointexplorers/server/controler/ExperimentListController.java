@@ -3,7 +3,9 @@ package com.endpointexplorers.server.controler;
 import com.endpointexplorers.server.component.ExperimentDtoMapper;
 import com.endpointexplorers.server.model.Experiment;
 import com.endpointexplorers.server.model.ExperimentDto;
+import com.endpointexplorers.server.request.ExperimentListRequest;
 import com.endpointexplorers.server.service.ExperimentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,18 +24,11 @@ public class ExperimentListController {
     private final ExperimentDtoMapper dtoMapper;
 
     @PostMapping
-    public ResponseEntity<?> getExperiments(@RequestBody Map<String, List<String>> bodyMap) {
+    public ResponseEntity<?> getExperiments(@RequestBody @Valid ExperimentListRequest request) {
         try {
-            List<String> statuses = bodyMap.containsKey("statuses") ? bodyMap.get("statuses") : new ArrayList<>();
-            List<String> problems = bodyMap.containsKey("problems") ? bodyMap.get("problems") : new ArrayList<>();
-            List<String> algorithms = bodyMap.containsKey("algorithms") ? bodyMap.get("algorithms") : new ArrayList<>();
-            List<String> metrics = bodyMap.containsKey("metrics") ? bodyMap.get("metrics") : new ArrayList<>();
-            List<String> groupNames = bodyMap.containsKey("groupNames") ? bodyMap.get("groupNames") : new ArrayList<>();
+            log.info("Fetching experiments with filters: {}", request);
 
-            log.info("Fetching experiments with filters - Statuses: {}, Problems: {}, Algorithms: {}, Metrics: {}, Groups {}",
-                    statuses, problems, algorithms, metrics, groupNames);
-
-            List<Experiment> experiments = service.getFilteredExperiments(statuses, problems, algorithms, metrics, groupNames);
+            List<Experiment> experiments = service.getFilteredExperiments(request);
             List<ExperimentDto> experimentDtos = dtoMapper.convertToDtoList(experiments);
 
             return ResponseEntity.ok(experimentDtos);

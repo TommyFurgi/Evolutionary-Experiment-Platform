@@ -4,12 +4,14 @@ import com.endpointexplorers.server.model.MetricsAndFiles;
 import com.endpointexplorers.server.request.StatsRequest;
 import com.endpointexplorers.server.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/stats")
 @RequiredArgsConstructor
@@ -19,16 +21,17 @@ public class StatsController {
 
     @PostMapping
     public ResponseEntity<?> getStats(@RequestBody StatsRequest request) {
-        System.out.println(request);
+        log.info("Received request: " + request);
+
         try {
             MetricsAndFiles result = statisticsService.getStats(
-                    request.getProblemName(),
-                    request.getAlgorithm(),
-                    request.getStartDateTime(),
-                    request.getEndDateTime(),
-                    request.getStatType(),
-                    request.getMetricsNamesToPlot(),
-                    request.getGroupName(),
+                    request.problemName(),
+                    request.algorithm(),
+                    request.startDateTime(),
+                    request.endDateTime(),
+                    request.statType(),
+                    request.metricsNamesToPlot(),
+                    request.groupName(),
                     request.isPlot(),
                     request.isCsv()
             );

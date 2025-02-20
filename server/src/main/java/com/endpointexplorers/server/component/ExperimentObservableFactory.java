@@ -1,6 +1,6 @@
 package com.endpointexplorers.server.component;
 
-import com.endpointexplorers.server.request.RunExperimentRequest;
+import com.endpointexplorers.server.request.RunExperimentsRequest;
 import io.reactivex.rxjava3.core.Observable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class ExperimentObservableFactory {
         return FREQUENCY;
     }
 
-    public Observable<Observations> createExperimentObservable(RunExperimentRequest request) throws IllegalArgumentException {
+    public Observable<Observations> createExperimentObservable(RunExperimentsRequest request) throws IllegalArgumentException {
         return Observable.fromCallable(() -> {
             Instrumenter instrumenter = instrumenterFactory.createInstrumenter(request, FREQUENCY);
             Executor executor = executorFactory.createExecutor(request, instrumenter);
