@@ -9,7 +9,7 @@
     - [Metrics List](#metrics-list-)
 3. [Cli Commands](#cli-commands)
     - [`run`](#run-command-)
-    - [`runManyDiff`](#runManyDiff-command-)
+    - [`runMulti`](#runMulti-command-)
     - [`get`](#get-command-)
     - [`getStats`](#getStats-command-)
     - [`list`](#list-command-)
@@ -21,7 +21,7 @@
     - [Experiment Table](#experiment-table-)
     - [Metrics Table](#metrics-table-)
 5. [API Endpoints](#api-endpoints)
-    - [Run Experiment](#run-experiment-)
+    - [Run Experiments](#run-experiments-)
     - [Run Multiple Experiments](#run-multiple-experiments-)
     - [Get Experiment By ID](#get-experiment-by-id-)
     - [Get Ready Experiments](#get-ready-experiments-)
@@ -100,7 +100,7 @@ run <problemName> <algorithm> [options]
 
 `-e, --evaluations <number>`: The number of evaluations to perform. Defaults to 1000. Example: -e 5000
 
-`-n, --experimentIterationNumber <number>`: The number of iterations for the experiment. Defaults to 1. Example: -n 10
+`-n, --experimentsNumber <number>`: The number of experiments for the data. Defaults to 1. Example: -n 10
 
 `-g, --groupName <group1>`: Name of the group. Defaults to "". Example: -g group1
 
@@ -108,7 +108,7 @@ run <problemName> <algorithm> [options]
 ---
 
 
-### `runManyDiff` command 📈
+### `runMulti` command 📈
 **Description**: Run multiple experiments on the server, each defined by a list of problems and a list of algorithms. You can also specify metrics, number of evaluations, and how many times to repeat each experiment.
 
 #### Usage
@@ -136,7 +136,7 @@ Example: -m hypervolume spacing
 The number of evaluations to perform in each experiment (default: 1000).
 Example: -e 5000
 
-`-n, --experimentIterationNumber <number>`
+`-n, --experimentsNumber <number>`
 How many times each (problem, algorithm) pair should be repeated (default: 1).
 Example: -n 3
 
@@ -154,6 +154,7 @@ Example: -g group1
 
 - `-m, --metrics <metric1> <metric2> ...`: List of metrics to evaluate (default: `all`).
 - `-e, --evaluations <number>`: The number of evaluations to perform (default: `1000`).
+- `-n, --experiemtnsNumber`: The number of experiments to perform for each pair (default: `1`)
 - `-g, --groupName <group1>`: Name of the group (default: `""`).
 
 ---
@@ -269,7 +270,7 @@ Example: 1 2 3
 Example: --groupName newGroup
 
 ---
-### `exit` command 🚪 
+### `exit` command 🚪
 **Description**: Exits the CLI application.
 
 #### Usage
@@ -357,7 +358,7 @@ If you provide the --group option, the value is treated as the group name.
 
 ## API Endpoints
 
-### Run Experiment 🚀
+### Run Experiments 🚀
 - **URL**: `/experiments`
 - **Method**: `POST`
 - **Description**: Starts a new experiment based on the provided configuration.
@@ -382,7 +383,7 @@ The endpoint accepts a JSON object that must match the `RunExperimentRequest` st
   **Constraints**:  
   - Must be greater than 0.  
 
-- **`experimentIterationNumber`** (Integer): The number of iterations for the experiment.  
+- **`experimentsNumber`** (Integer): The number of experiments for the data.  
   **Constraints**:  
   - Must be greater than 0.  
 
@@ -396,14 +397,14 @@ The endpoint accepts a JSON object that must match the `RunExperimentRequest` st
   "algorithm": "NSGA-II",
   "metrics": ["contribution", "spacing"],
   "evaluationNumber": 1000,
-  "experimentIterationNumber": 1,
+  "experimentsNumber": 1,
   "groupName": "group1"
 }
 ```
 
 ---
 ### Run Multiple Experiments 🔄
-- **URL**: `/experiments/manyDifferent`
+- **URL**: `/experiments/multi`
 - **Method**: `POST`
 - **Description**: Triggers multiple experiments for combinations of problems and algorithms. Each experiment is executed based on the parameters provided.
 
@@ -423,7 +424,7 @@ The endpoint accepts a JSON object with the following required fields:
   **Minimum Value**: `1`  
   **Default**: No default; must be explicitly provided.
 
-- **`experimentIterationNumber`** (Integer): The number of iterations for each experiment.  
+- **`experimentsNumber`** (Integer): The number of experiments for each pair.  
   **Minimum Value**: `1`  
   **Default**: No default; must be explicitly provided.
 
@@ -437,7 +438,7 @@ The endpoint accepts a JSON object with the following required fields:
   "algorithms": ["NSGA-II", "GDE3"],
   "metrics": ["enlapsed-time", "spacing"],
   "evaluationNumber": 1000,
-  "experimentIterationNumber": 2,
+  "experimentsNumber": 2,
   "groupName": "group1"
 }
 ```
@@ -452,7 +453,7 @@ The endpoint accepts a JSON object with the following required fields:
 
 ---
 ### Get Ready Experiments 🕒
-- **URL**: `/experiments/ready`
+- **URL**: `/experiments/completed`
 - **Method**: `GET`
 - **Description**: Retrieves a list of experiments that are marked as **READY** (completed computations, but not yet acknowledged by the CLI).
 
@@ -631,7 +632,7 @@ run UF1 e-MOEA -n 10
 **Run multiple experiments with multiple problems and algorithms:**
 
 ```bash
-runManyDiff -p UF1 DTLZ2 -a e-MOEA NSGA-II -e 5000 -n 3
+runMulti -p UF1 DTLZ2 -a e-MOEA NSGA-II -e 5000 -n 3
 ```
 
 **You can check the statistics of completed experiments:**
